@@ -363,7 +363,7 @@ def main():
     radius_fronts_avg = rm_fronts.mean(axis=1)*25.2
 
     horseshoe = create_starting_grid(np.array([0]),np.array([0]))
-    rows,cols = 1200, 1200 #have to be sqaured
+    rows,cols = 1500, 1500 #have to be sqaured
     dat2_inter = np.zeros((rows, cols))
     POS = np.meshgrid(np.arange(rows), np.arange(cols))
     heel_pos_x = np.array([],int)
@@ -378,8 +378,8 @@ def main():
         else:
             v1_x = v1_x +v1[0]
         for count_v2 in range_v2:
-            x_point = v1_x+count_v2*v2[0] + 50
-            y_point = count_v1*v1[1]+count_v2*v2[1] +50
+            x_point = v1_x+count_v2*v2[0] + 150
+            y_point = count_v1*v1[1]+count_v2*v2[1] + 150
             starting_pos_x = np.append(starting_pos_x,x_point.astype(int))
             starting_pos_y = np.append(starting_pos_y,y_point.astype(int))
             horseshoe_x = (np.rint(horseshoe[0]+x_point)).astype(int)
@@ -540,11 +540,11 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/"
+    folder_path = f"./modell_tanh_stiffness_full_funct_adjust_grid_size/"
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
-    voronoi_matrix = np.zeros((21,12))
+    voronoi_matrix = np.zeros((14,18))
     for sweeps in range(10):
         
         way_matrix_x, way_matrix_y, grid_x, grid_y= main() 
@@ -567,7 +567,7 @@ if __name__ == '__main__':
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,"voronoi")
             if receptor==4:
                 start =1
-            voronoi_matrix[start::2,np.arange(np.mod(receptor-1,3),21,3)] += voronoi_results.astype(int).reshape(7,6)
+            voronoi_matrix[start::2,np.arange(np.mod(receptor-1,3),18,3)] += voronoi_results.astype(int).reshape(7,6)
         
     #fig, ax = plt.subplots()
     plt.figure(dpi = 300)
