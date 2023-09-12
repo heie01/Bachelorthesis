@@ -539,7 +539,7 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = False
+    making_movie = True
     folder_path = f"./modell_tanh_stiffness_full_funct_adjust_grid_size/"
     nr_of_rec = 42
     include_equator = False
@@ -554,16 +554,16 @@ if __name__ == '__main__':
             np.save(f, grid_x)
             np.save(f, grid_y)
     for sweeps in range(10):
-        """with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
-        way_matrix_x = np.load(f)
-        way_matrix_y = np.load(f)
-        grid_x = np.load(f)
-        grid_y = np.load(f)"""
+        with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
         start = 0
         for receptor in np.arange(1,7):
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
             first_pos = np.array(list(zip(way_matrix_x[rec_index,0],way_matrix_y[rec_index,0])))
-            last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+            last_pos = np.array(list(zip(way_matrix_x[rec_index,20],way_matrix_y[rec_index,20])))
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,"voronoi")
             if receptor==4:
                 start =1
@@ -586,15 +586,16 @@ if __name__ == '__main__':
     plt.axvline(x = 5.5,linewidth=1, color='black')
     plt.axvline(x = 8.5,linewidth=1, color='black')
     plt.axvline(x = 11.5,linewidth=1, color='black')
+    plt.axvline(x = 14.5,linewidth=1, color='black')
     
 
     cmap = mpl.cm.viridis
     bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
-    plt.title("Correct conected receptors out of 10 rounds")
+    plt.title("Correct connected receptors out of 10 rounds")
 
-    plt.savefig(f"{folder_path}voronoi_matrix.png")
+    plt.savefig(f"{folder_path}voronoi_matrix_40.png")
     """#histogram_input = np.load(f)
         #print(histogram_input[:,14]>5.5)
         #plt.hist(histogram_input[:,14], bins=30) 
