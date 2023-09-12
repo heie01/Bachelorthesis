@@ -339,10 +339,7 @@ def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, mode='target_a
         #correct = correct[0,:]
     return correct
 
-def main():
-#print(create_starting_grid(np.array([0]),np.array([0])))
-#creating starting postions
-
+def creat_start():
     # measured size of heels
     rm_heels = np.array([[3.10231051831059, 2.91492280980449, 2.04300797855269, 2.16799853146643],
                          [3.36613563287586, 3.6474344212202, 2.59092160570733, 2.49818435400807],
@@ -389,7 +386,13 @@ def main():
             heel_pos_y = np.append(heel_pos_y,horseshoe_y,axis = None) 
     
     heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
-    fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+    fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)#
+    return heels_desity,fronts_desity, heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg
+
+def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg):
+    #print(create_starting_grid(np.array([0]),np.array([0])))
+    #creating starting postions
+    
     #min and max values for histogram given with range = [[xmin, xmax], [ymin, ymax]]
     #bins is the controll for how blurry the graph is
     #postitions = np.histogram2d(heel_pos_y,heel_pos_x, bins = 720, range = [[0, 720], [0, 720]])
@@ -398,8 +401,8 @@ def main():
     if making_movie:
         plt.figure(dpi=300)
         ### xlim und ylim anpassen an neue Gridgröße
-        #plt.xlim(250,700)
-        #plt.ylim(170,600)
+        plt.xlim(100,1300)
+        plt.ylim(100,800)
         plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
         plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
         plt.colorbar()
@@ -436,54 +439,55 @@ def main():
             plt.colorbar()     
         for R in np.arange(42*6):
             #stop the growth of the filopodia if mask is out of range of matrix
-            if time>0 and ( way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]):
-                way_matrix_x[R,time] =way_matrix_x[R,time-1]
-                way_matrix_y[R,time] =way_matrix_y[R,time-1]
-                continue
-            k_fil_scale = speeds[np.mod(R,6)]
-            mask = np.zeros((rows, cols), dtype= bool) #mask_emtpy
-            if time == 0:
-                way_matrix_x[R,time] = heel_pos_x[R]
-                way_matrix_y[R,time] = heel_pos_y[R]
-                front_x, front_y = way_matrix_x[R,time],way_matrix_y[R,time]
-                angle = startangs_all[np.mod(R,6)]
+            if time>0 and (way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]):
+                way_matrix_x[R,time+1] =way_matrix_x[R,time]
+                way_matrix_y[R,time+1] =way_matrix_y[R,time]
             else:
-                last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
-                angle = find_degree(last_front_x,last_front_y, front_x, front_y)
-            heel_x, heel_y = way_matrix_x[R,0],way_matrix_y[R,0]
-            ind = creat_mask(angle, front_x, front_y, roi_radius[np.mod(R,6)], roi_degree[np.mod(R,6)], mask)
-            if making_movie and R == 80:
-                plt.imshow(ind,origin="lower",alpha=0.2)
-            histog, bins = np.histogram(dat2_inter[ind], bins=10000) # histogram of the density values in the ROI
-            cs = (1 - np.cumsum(histog)/np.sum(histog))**4 # cumulative density function, to the power of 4 to make it steeper - see 'inverse transform sampling' for more details
-            rr = np.random.rand(n_fil) # sample n_fil = 10 random uniform [0, 1[ numbers
+                k_fil_scale = speeds[np.mod(R,6)]
+                mask = np.zeros((rows, cols), dtype= bool) #mask_emtpy
+                if time == 0:
+                    way_matrix_x[R,time] = heel_pos_x[R]
+                    way_matrix_y[R,time] = heel_pos_y[R]
+                    front_x, front_y = way_matrix_x[R,time],way_matrix_y[R,time]
+                    angle = startangs_all[np.mod(R,6)]
+                else:
+                    last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
+                    angle = find_degree(last_front_x,last_front_y, front_x, front_y)
+                heel_x, heel_y = way_matrix_x[R,0],way_matrix_y[R,0]
+                ind = creat_mask(angle, front_x, front_y, roi_radius[np.mod(R,6)], roi_degree[np.mod(R,6)], mask)
+                
+                histog, bins = np.histogram(dat2_inter[ind], bins=10000) # histogram of the density values in the ROI
+                cs = (1 - np.cumsum(histog)/np.sum(histog))**4 # cumulative density function, to the power of 4 to make it steeper - see 'inverse transform sampling' for more details
+                rr = np.random.rand(n_fil) # sample n_fil = 10 random uniform [0, 1[ numbers
 
-            ind_res = np.array([np.where(cs < rtemp)[0][0] for rtemp in rr]) # at what index does the cumulative density function cross the rr value?
-            vals = ((bins[1:] + bins[:-1])/2)[ind_res] # translate the index into density value, using the middle of the bins
+                ind_res = np.array([np.where(cs < rtemp)[0][0] for rtemp in rr]) # at what index does the cumulative density function cross the rr value?
+                vals = ((bins[1:] + bins[:-1])/2)[ind_res] # translate the index into density value, using the middle of the bins
 
-            # now I want to use the density values in vals and find a position in the ROI that corresponds to that density value
-            D_vals = np.abs(vals[:, None] - dat2_inter[ind][None, :]) # distance of vals to all the density values in the ROI
-            xfil, yfil = np.array([]), np.array([])
-            xfil = np.hstack((xfil, POS[0][ind][D_vals.argmin(axis=1)])) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
-            yfil = np.hstack((yfil, POS[1][ind][D_vals.argmin(axis=1)]))
+                # now I want to use the density values in vals and find a position in the ROI that corresponds to that density value
+                D_vals = np.abs(vals[:, None] - dat2_inter[ind][None, :]) # distance of vals to all the density values in the ROI
+                xfil, yfil = np.array([]), np.array([])
+                xfil = np.hstack((xfil, POS[0][ind][D_vals.argmin(axis=1)])) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
+                yfil = np.hstack((yfil, POS[1][ind][D_vals.argmin(axis=1)]))
 
-            #not sure if it can be saved like that
-            fil_matrix_x[R] = xfil
-            fil_matrix_y[R] = yfil      
+                #not sure if it can be saved like that
+                fil_matrix_x[R] = xfil
+                fil_matrix_y[R] = yfil      
 
-            new_fil_x = (sum(xfil- front_x)/n_fil)*k_fil_scale + front_x
-            new_fil_y = (sum(yfil- front_y)/n_fil)*k_fil_scale + front_y
+                new_fil_x = (sum(xfil- front_x)/n_fil)*k_fil_scale + front_x
+                new_fil_y = (sum(yfil- front_y)/n_fil)*k_fil_scale + front_y
 
-            if time == 0:
-                new_stiff_x, new_stiff_y = find_point_2degree(front_x, front_y,2*roi_radius[np.mod(R,6)]*np.sin(angle)*k_fil_scale/(3*angle), angle)
+                if time == 0:
+                    new_stiff_x, new_stiff_y = find_point_2degree(front_x, front_y,2*roi_radius[np.mod(R,6)]*np.sin(angle)*k_fil_scale/(3*angle), angle)
 
-            else:
-                new_stiff_x = ((-front_x + heel_x)/(-time)) + front_x
-                new_stiff_y = ((-front_y + heel_y)/(-time)) + front_y
+                else:
+                    new_stiff_x = ((-front_x + heel_x)/(-time)) + front_x
+                    new_stiff_y = ((-front_y + heel_y)/(-time)) + front_y
 
-            way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
-            way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
+                way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
+                way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
             if making_movie:
+                if R == 80:
+                    plt.imshow(ind,origin="lower",alpha=0.2)
                 plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
                 if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
@@ -493,8 +497,8 @@ def main():
             plt.scatter(way_matrix_x[:,time+1],way_matrix_y[:,time+1], s = 1, color= "r")
             plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0], s = 1,color = "black")
             plt.title(label = "Densitylandscape")
-            #plt.xlim(250,700)
-            #plt.ylim(170,600)
+            plt.xlim(100,1300)
+            plt.ylim(100,800)
             plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black")
             #plt.show()
             plt.savefig(f"{folder_path}{time+1}.png")
@@ -545,10 +549,11 @@ if __name__ == '__main__':
     include_equator = False
     r3r4swap = False
     voronoi_matrix = np.zeros((14,18))
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start()
     for sweeps in range(10):
         if sweeps==1:
             making_movie = False
-        way_matrix_x, way_matrix_y, grid_x, grid_y= main() 
+        way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
         with open(f"{folder_path}test_{sweeps}.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
             np.save(f, way_matrix_y)
