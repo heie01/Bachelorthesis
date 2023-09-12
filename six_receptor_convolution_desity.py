@@ -339,7 +339,7 @@ def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, mode='target_a
         #correct = correct[0,:]
     return correct
 
-def creat_start():
+def creat_start(calc_density):
     # measured size of heels
     rm_heels = np.array([[3.10231051831059, 2.91492280980449, 2.04300797855269, 2.16799853146643],
                          [3.36613563287586, 3.6474344212202, 2.59092160570733, 2.49818435400807],
@@ -385,8 +385,12 @@ def creat_start():
             heel_pos_x = np.append(heel_pos_x,horseshoe_x,axis = None)
             heel_pos_y = np.append(heel_pos_y,horseshoe_y,axis = None) 
     
-    heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
-    fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)#
+    if calc_density:
+        heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
+        fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)#
+    else:
+        heels_desity = np.array([])
+        fronts_desity = np.array([])
     return heels_desity,fronts_desity, heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg
 
 def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg):
@@ -432,7 +436,10 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     
     #time verändert von 20,40,1 zu 20
     for time in np.arange(20):
-        s_time = s(time+20, s_steap, s_x_move) 
+        if const_stiff:
+            s_time = constanct_stiff
+        else:
+            s_time = s(time+20, s_steap, s_x_move) 
         if making_movie:
             plt.figure(dpi = 300)
             plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
@@ -543,23 +550,24 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = True
-    folder_path = f"./modell_tanh_stiffness_full_funct_flashlight_degree_wrong!!!/"
+    making_movie = False
+    folder_path = f"./modell_constant_stiffness_anaylse/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    voronoi_matrix = np.zeros(252)
-    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start()
-    """for sweeps in range(10):
-        if sweeps==1:
-            making_movie = False
-        way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-        with open(f"{folder_path}test_{sweeps}.npy", 'w+b') as f:
-            np.save(f, way_matrix_x)
-            np.save(f, way_matrix_y)
-            np.save(f, grid_x)
-            np.save(f, grid_y)
+    const_stiff = True
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
+    for constanct_stiff in np.arange(0,1,0.2):
+        for sweeps in range(4):
+            way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+            with open(f"{folder_path}test_{constanct_stiff}_stiffness_{sweeps}.npy", 'w+b') as f:
+                np.save(f, way_matrix_x)
+                np.save(f, way_matrix_y)
+                np.save(f, grid_x)
+                np.save(f, grid_y)
     """
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     for sweeps in range(10):
         with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
@@ -572,35 +580,16 @@ if __name__ == '__main__':
             last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,"voronoi")
             voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
-        
-    #fig, ax = plt.subplots()
-    plt.figure(dpi = 300)
-    plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=50)
-    #plt.imshow(voronoi_matrix,origin="lower")
     
-    #plt.axhline(y = -0.5,linewidth=1, color='black')
-    #plt.axhline(y = 1.5,linewidth=1, color='black')
-    #plt.axhline(y = 3.5,linewidth=1, color='black')
-    #plt.axhline(y = 5.5,linewidth=1, color='black')
-    #plt.axhline(y = 7.5,linewidth=1, color='black')
-    #plt.axhline(y = 9.5,linewidth=1, color='black')
-    #plt.axhline(y = 11.5,linewidth=1, color='black')
-    #plt.axhline(y = 13.5,linewidth=1, color='black')
-    #plt.axvline(x = -0.5,linewidth=1, color='black')
-    #plt.axvline(x = 2.5,linewidth=1, color='black')
-    #plt.axvline(x = 5.5,linewidth=1, color='black')
-    #plt.axvline(x = 8.5,linewidth=1, color='black')
-    #plt.axvline(x = 11.5,linewidth=1, color='black')
-    #plt.axvline(x = 14.5,linewidth=1, color='black')
-    #
-    #
+    plt.figure(dpi = 300)
+    plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
+    
     cmap = mpl.cm.viridis
     bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
     plt.title("Correct connected receptors out of 10 rounds")
-    #plt.show
-    plt.savefig(f"{folder_path}voronoi_matrix_different.png")
+    plt.savefig(f"{folder_path}voronoi_matrix_different.png")"""
     """#histogram_input = np.load(f)
         #print(histogram_input[:,14]>5.5)
         #plt.hist(histogram_input[:,14], bins=30) 
