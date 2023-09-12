@@ -395,17 +395,17 @@ def main():
     #postitions = np.histogram2d(heel_pos_y,heel_pos_x, bins = 720, range = [[0, 720], [0, 720]])
     #heels_desity = signal.fftconvolve(postitions[0], kernel, mode='same')
     dat2_inter = heels_desity+fronts_desity
-    #if making_movie:
-    plt.figure(dpi=300)
-    ### xlim und ylim anpassen an neue Gridgröße
-    #plt.xlim(250,700)
-    #plt.ylim(170,600)
-    plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
-    plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
-    plt.colorbar()
-    #plt.show()
-    plt.savefig(f"{folder_path}0.png")
-    plt.close()
+    if making_movie:
+        plt.figure(dpi=300)
+        ### xlim und ylim anpassen an neue Gridgröße
+        #plt.xlim(250,700)
+        #plt.ylim(170,600)
+        plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
+        plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
+        plt.colorbar()
+        #plt.show()
+        plt.savefig(f"{folder_path}0.png")
+        plt.close()
     #variables
     circ_width_all = np.array([[76.93677250002409, 66.1581562071056, 58.64359788352946, 68.19374152821266],
                                [67.10341096706019, 63.6030367287868, 64.58480307212197, 64.68382969250712],
@@ -430,13 +430,13 @@ def main():
     #time verändert von 20,40,1 zu 20
     for time in np.arange(20):
         s_time = s(time+20, s_steap, s_x_move) 
-        #if making_movie:
-        plt.figure(dpi = 300)
-        plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
-        plt.colorbar()     
+        if making_movie:
+            plt.figure(dpi = 300)
+            plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
+            plt.colorbar()     
         for R in np.arange(42*6):
             #stop the growth of the filopodia if mask is out of range of matrix
-            if  way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]:
+            if time>0 and ( way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]):
                 way_matrix_x[R,time] =way_matrix_x[R,time-1]
                 way_matrix_y[R,time] =way_matrix_y[R,time-1]
                 continue
@@ -452,7 +452,7 @@ def main():
                 angle = find_degree(last_front_x,last_front_y, front_x, front_y)
             heel_x, heel_y = way_matrix_x[R,0],way_matrix_y[R,0]
             ind = creat_mask(angle, front_x, front_y, roi_radius[np.mod(R,6)], roi_degree[np.mod(R,6)], mask)
-            if R == 80:
+            if making_movie and R == 80:
                 plt.imshow(ind,origin="lower",alpha=0.2)
             histog, bins = np.histogram(dat2_inter[ind], bins=10000) # histogram of the density values in the ROI
             cs = (1 - np.cumsum(histog)/np.sum(histog))**4 # cumulative density function, to the power of 4 to make it steeper - see 'inverse transform sampling' for more details
@@ -483,22 +483,22 @@ def main():
 
             way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
             way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
-            #if making_movie:
-            plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
-            if np.mod(R,6) ==5:
-                plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
+            if making_movie:
+                plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
+                if np.mod(R,6) ==5:
+                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
-        #if making_movie:
-        #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
-        plt.scatter(way_matrix_x[:,time+1],way_matrix_y[:,time+1], s = 1, color= "r")
-        plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0], s = 1,color = "black")
-        plt.title(label = "Densitylandscape")
-        #plt.xlim(250,700)
-        #plt.ylim(170,600)
-        plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black")
-        #plt.show()
-        plt.savefig(f"{folder_path}{time+1}.png")
-        plt.close()
+        if making_movie:
+            #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
+            plt.scatter(way_matrix_x[:,time+1],way_matrix_y[:,time+1], s = 1, color= "r")
+            plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0], s = 1,color = "black")
+            plt.title(label = "Densitylandscape")
+            #plt.xlim(250,700)
+            #plt.ylim(170,600)
+            plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black")
+            #plt.show()
+            plt.savefig(f"{folder_path}{time+1}.png")
+            plt.close()
         
         #kernel = np.outer(signal.windows.gaussian(70,100), signal.windows.gaussian(70, 100))
         #postitions = np.histogram2d(way_matrix_y[:,time+1],way_matrix_x[:,time+1], bins = 720, range = [[0, 720], [0, 720]])
@@ -539,15 +539,15 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    #making_movie = True
+    making_movie = True
     folder_path = f"./modell_tanh_stiffness_full_funct_adjust_grid_size/"
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
     voronoi_matrix = np.zeros((14,18))
     for sweeps in range(10):
-       # if sweeps==1:
-        #    making_movie = False
+        if sweeps==1:
+            making_movie = False
         way_matrix_x, way_matrix_y, grid_x, grid_y= main() 
         with open(f"{folder_path}test_{sweeps}.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
