@@ -395,17 +395,17 @@ def main():
     #postitions = np.histogram2d(heel_pos_y,heel_pos_x, bins = 720, range = [[0, 720], [0, 720]])
     #heels_desity = signal.fftconvolve(postitions[0], kernel, mode='same')
     dat2_inter = heels_desity+fronts_desity
-    if making_movie:
-        plt.figure(dpi=300)
-        ### xlim und ylim anpassen an neue Gridgröße
-        #plt.xlim(250,700)
-        #plt.ylim(170,600)
-        plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
-        plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
-        plt.colorbar()
-        #plt.show()
-        plt.savefig(f"{folder_path}0.png")
-        plt.close()
+    #if making_movie:
+    plt.figure(dpi=300)
+    ### xlim und ylim anpassen an neue Gridgröße
+    #plt.xlim(250,700)
+    #plt.ylim(170,600)
+    plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
+    plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
+    plt.colorbar()
+    #plt.show()
+    plt.savefig(f"{folder_path}0.png")
+    plt.close()
     #variables
     circ_width_all = np.array([[76.93677250002409, 66.1581562071056, 58.64359788352946, 68.19374152821266],
                                [67.10341096706019, 63.6030367287868, 64.58480307212197, 64.68382969250712],
