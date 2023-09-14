@@ -222,7 +222,7 @@ def calc_closest_point_on_ellipse(a_ell, b_ell, point):
     yr = point[:, :, 1]/point[:, :, 0] * xr
     return np.sign(point[:, :, 0])*xr, np.sign(point[:, :, 1])*np.abs(yr)
 
-def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, mode='target_area'):
+def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, receptor, mode='target_area'):
     """
     evaluates if pos_eval is within the correct target area/Voronoi cell
     
@@ -306,7 +306,7 @@ def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, mode='target_a
         closest_bundle = np.zeros((len(goal_loc), 2))
         #print("goal", goal_loc)
         #print(a_ell,b_ell)
-        plt.scatter(Xint,Yint)
+        #plt.scatter(Xint,Yint)
         for kk in range(len(goal_loc)):
             Xs_ell, Ys_ell = calc_closest_point_on_ellipse(b_ell, a_ell, pos_eval[None, kk, :]
                                                            - np.array([[x, y]
@@ -497,7 +497,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                     plt.imshow(ind,origin="lower",alpha=0.2)
                 plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
                 if np.mod(R,6) ==5:
-                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
+                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=1)
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
         if making_movie:
             #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
@@ -530,7 +530,68 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
         
     return way_matrix_x,way_matrix_y,starting_pos_x, starting_pos_y #, histogram_input
 
-    
+def modell_distance(folder_path_1,range_1, folder_path_2, range_2):
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    cor_connect= np.zeros((42*6))
+    middle_distance =np.zeros((42*6))
+    amout_added = np.zeros((42*6))
+    for fil_files in range(range_1):
+        with open(f"{folder_path_1}{fil_files}.npy", 'rb') as f:
+            way_matrix_x_fil = np.load(f)
+            way_matrix_y_fil = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            first_pos = np.array(list(zip(way_matrix_x_fil[rec_index,0],way_matrix_y_fil[rec_index,0])))
+            last_pos = np.array(list(zip(way_matrix_x_fil[rec_index,15],way_matrix_y_fil[rec_index,15])))
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 , receptor,"voronoi")
+            cor_connect[(receptor-1)::6] = voronoi_results
+        for sta_files in range(range_2):
+            with open(f"{folder_path_2}{sta_files}.npy", 'rb') as f:
+                way_matrix_x_sta = np.load(f)
+                way_matrix_y_sta = np.load(f)
+            middle_distance += [np.sqrt((way_matrix_x_fil[ind,15]-way_matrix_x_sta[ind,15])**2+(way_matrix_y_fil[ind,15]-way_matrix_y_sta[ind,15])**2) if  x else 0 for ind, x in enumerate(cor_connect)]
+            amout_added += cor_connect.astype(int)
+    middle_distance =np.divide(middle_distance,amout_added, out=np.zeros_like(middle_distance), where=amout_added!=0)
+    #print(middle_distance)
+    receptors = np.zeros(6)
+    for receptor in np.arange(1,7):
+        rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+        receptors[receptor-1] = np.mean(middle_distance[rec_index])
+    return receptors
+
+def same_modell_distance(folder_path_1,range_1):
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    cor_connect= np.zeros((42*6))
+    middle_distance =np.zeros((42*6))
+    amout_added = np.zeros((42*6))
+    for fil_files in range(range_1):
+        with open(f"{folder_path_1}{fil_files}.npy", 'rb') as f:
+            way_matrix_x_fil = np.load(f)
+            way_matrix_y_fil = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            first_pos = np.array(list(zip(way_matrix_x_fil[rec_index,0],way_matrix_y_fil[rec_index,0])))
+            last_pos = np.array(list(zip(way_matrix_x_fil[rec_index,15],way_matrix_y_fil[rec_index,15])))
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+            cor_connect[(receptor-1)::6] = voronoi_results
+        for sta_files in range(fil_files):
+            with open(f"{folder_path_1}{sta_files}.npy", 'rb') as f:
+                way_matrix_x_sta = np.load(f)
+                way_matrix_y_sta = np.load(f)
+            middle_distance += [np.sqrt((way_matrix_x_fil[ind,15]-way_matrix_x_sta[ind,15])**2+(way_matrix_y_fil[ind,15]-way_matrix_y_sta[ind,15])**2) if  x else 0 for ind, x in enumerate(cor_connect)]
+            amout_added += cor_connect.astype(int)
+    middle_distance =np.divide(middle_distance,amout_added, out=np.zeros_like(middle_distance), where=amout_added!=0)
+    #print(middle_distance)
+    receptors = np.zeros(6)
+    for receptor in np.arange(1,7):
+        rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+        receptors[receptor-1] = np.mean(middle_distance[rec_index])
+    return receptors
+
     """
     saveing = quantify_correct_way(starting_pos_x, starting_pos_y, way_matrix_x[:,20],way_matrix_y[:,20])
     print(saveing)
@@ -557,16 +618,21 @@ if __name__ == '__main__':
     r3r4swap = False
     const_stiff = True
     voronoi_matrix = np.zeros(nr_of_rec*6)
+    
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for constanct_stiff in np.arange(0,1,0.2):
-        for sweeps in range(4):
+    for constanct_stiff in np.arange(0,1.1,0.1):
+        constanct_stiff = np.round(constanct_stiff,1)
+        for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
             with open(f"{folder_path}test_{constanct_stiff}_stiffness_{sweeps}.npy", 'w+b') as f:
                 np.save(f, way_matrix_x)
                 np.save(f, way_matrix_y)
                 np.save(f, grid_x)
                 np.save(f, grid_y)
+    
     """
+    #calcualting the performance based on the placement in the grid
+
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     for sweeps in range(10):
         with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
@@ -578,7 +644,7 @@ if __name__ == '__main__':
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
             first_pos = np.array(list(zip(way_matrix_x[rec_index,0],way_matrix_y[rec_index,0])))
             last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
-            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,"voronoi")
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
             voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
     
     plt.figure(dpi = 300)
@@ -589,7 +655,25 @@ if __name__ == '__main__':
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
     plt.title("Correct connected receptors out of 10 rounds")
-    plt.savefig(f"{folder_path}voronoi_matrix_different.png")"""
+    plt.savefig(f"{folder_path}voronoi_matrix.png")
+    """
+    """
+    #comparing the output of the experiments
+
+    plt.bar(np.arange(6)-0.3,same_modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.bar(np.arange(6)-0.1,modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/test_0.0_stiffness_",4, "C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.bar(np.arange(6),modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/test_0.2_stiffness_",4, "C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.bar(np.arange(6)+0.1,modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/test_0.4_stiffness_",4, "C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.bar(np.arange(6)+0.2,modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/test_0.6000000000000001_stiffness_",4, "C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.bar(np.arange(6)+0.3,modell_distance("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/test_0.8_stiffness_",4, "C:/Users/hei-1/OneDrive/BCHLRARBT/modell_tanh_stiffness_full_funct_adjust_grid_size/test_",10), 0.1)
+    plt.xticks(np.arange(6), ['R1', 'R2', 'R3', 'R4', 'R5','R6'])
+    plt.ylim(0,80)
+    plt.xlabel("Receptor Type")
+    plt.ylabel("Distance to same Receptors")
+    plt.legend(["Controll Modell with Original Function", "Modell Constant Stiffness 0.0", "Modell Constant Stiffness 0.2", "Modell Constant Stiffness 0.4", "Modell Constant Stiffness 0.6", "Modell Constant Stiffness 0.8"], loc='upper left', borderaxespad=1)
+    #plt.show()
+    plt.savefig("C:/Users/hei-1/OneDrive/BCHLRARBT/modell_constant_stiffness_anaylse/distance_of_modells.png")
+    """
     """#histogram_input = np.load(f)
         #print(histogram_input[:,14]>5.5)
         #plt.hist(histogram_input[:,14], bins=30) 

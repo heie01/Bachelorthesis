@@ -552,8 +552,8 @@ if __name__ == '__main__':
     r3r4swap = False
     voronoi_matrix = np.zeros(42*6)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for number in np.array([3,5,7]):
-        for sweeps in range(4):
+    for number in range(11):
+        for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
             with open(f"{folder_path}test_keep_{number}_fil_{sweeps}.npy", 'w+b') as f:
                 np.save(f, way_matrix_x)
