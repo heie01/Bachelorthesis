@@ -625,7 +625,7 @@ if __name__ == '__main__':
     r3r4swap = False
     const_stiff = False
     voronoi_matrix = np.zeros(nr_of_rec*6)
-    loss_bundle = 24 #da bundle mit 0 startes, looking at bundle 25
+    loss_bundle = 21 #da bundle mit 0 startes, looking at bundle 22
     #loss_receptor = 1 
     
     """heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
