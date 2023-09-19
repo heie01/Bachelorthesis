@@ -360,16 +360,16 @@ def creat_start(calc_density):
     radius_fronts_avg = rm_fronts.mean(axis=1)*25.2
 
     horseshoe = create_starting_grid(np.array([0]),np.array([0]))
-    rows,cols = 3000, 3000 #have to be sqaured
+    rows,cols = 1500, 1500 #have to be sqaured
     dat2_inter = np.zeros((rows, cols))
     POS = np.meshgrid(np.arange(rows), np.arange(cols))
     heel_pos_x = np.array([],int)
     heel_pos_y = np.array([],int)
     
     starting_pos_x, starting_pos_y = np.array([],dtype=int), np.array([],dtype=int)
-    range_v2 = np.arange(12)
+    range_v2 = np.arange(6)
     v1_x = 0
-    for count_v1 in np.arange(14):
+    for count_v1 in np.arange(7):
         if np.mod(count_v1,2)==1:	
             v1_x = v1_x-v1[0]
         else:
@@ -405,8 +405,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     if making_movie:
         plt.figure(dpi=300)
         ### xlim und ylim anpassen an neue Gridgröße
-        #plt.xlim(100,1300)
-        #plt.ylim(100,800)
+        plt.xlim(100,1300)
+        plt.ylim(100,800)
         plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
         plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
         plt.colorbar()
@@ -419,7 +419,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                                [59.99951401507621, 49.70632397768759, 59.76089748808765, 62.63689465660343],
                                [65.18759340181808, 64.6663385598332, 54.128563634672744, 58.3338061658033],
                                [73.7705462792746, 73.75319815476855, 70.71260029847282, 67.54024198457094],
-                               [82.29011450458808, 70.63559641125377, 69.51033837975177, 58.19852457593135]])*2
+                               [82.29011450458808, 70.63559641125377, 69.51033837975177, 58.19852457593135]])*angle_per
     roi_degree = np.radians(circ_width_all.mean(axis=1)) # angular width of the 'flashlight'
     roi_radius  = 25.2*np.array([4.41,3.6,5.15,3.58,4.48,4.74])
     n_fil = 10
@@ -428,11 +428,11 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     s_steap = 0.75
     s_x_move = 25
 
-    histogram_input = np.zeros((168,20))
-    way_matrix_x = np.zeros((168*6,21))
-    way_matrix_y = np.zeros((168*6,21))
-    fil_matrix_x = np.zeros((168*6,10))
-    fil_matrix_y = np.zeros((168*6,10))
+    histogram_input = np.zeros((42,20))
+    way_matrix_x = np.zeros((42*6,21))
+    way_matrix_y = np.zeros((42*6,21))
+    fil_matrix_x = np.zeros((42*6,10))
+    fil_matrix_y = np.zeros((42*6,10))
     
     #time verändert von 20,40,1 zu 20
     for time in np.arange(20):
@@ -444,7 +444,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             plt.figure(dpi = 300)
             plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
             plt.colorbar()     
-        for R in np.arange(168*6):
+        for R in np.arange(42*6):
             #stop the growth of the filopodia if mask is out of range of matrix
             if time>0 and (way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]):
                 way_matrix_x[R,time+1] =way_matrix_x[R,time]
@@ -493,7 +493,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
                 way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
             if making_movie:
-                if np.mod(R,6) == 5:
+                if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray")
                 if R == 80:
                     plt.imshow(ind,origin="lower",alpha=0.2)
@@ -505,8 +505,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             plt.scatter(way_matrix_x[:,time+1],way_matrix_y[:,time+1], s = 1, color= "r")
             plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0], s = 1,color = "black")
             plt.title(label = "Densitylandscape")
-            #plt.xlim(100,1300)
-            #plt.ylim(100,800)
+            plt.xlim(100,1300)
+            plt.ylim(100,800)
             plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black")
             #plt.show()
             plt.savefig(f"{folder_path}{time+1}.png")
@@ -612,37 +612,39 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = True
-    folder_path = f"./modell_tanh_stiffness_doubel_grid_size/"
-    nr_of_rec = 168 #number of bundles
+    making_movie = False
+    folder_path = f"./modell_tanh_stiffness_flashlight_width_analyse/"
+    nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
     const_stiff = False
     
     
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for sweeps in range(10):
-        if sweeps==1:
-            making_movie= False
-        way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-        with open(f"{folder_path}test_{sweeps}.npy", 'w+b') as f:
-            np.save(f, way_matrix_x)
-            np.save(f, way_matrix_y)
-            np.save(f, grid_x)
-            np.save(f, grid_y)
+    for angle_per in np.arange(1,2.1,0.2):
+        angle_per = np.round(angle_per,1)
+        for sweeps in range(10):
+            way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+            with open(f"{folder_path}angle_{angle_per}_test_{sweeps}.npy", 'w+b') as f:
+                np.save(f, way_matrix_x)
+                np.save(f, way_matrix_y)
+                np.save(f, grid_x)
+                np.save(f, grid_y)
     
     
     """
     #calcualting the performance based on the placement in the grid
-    #for the loss of a receptor
+    plt.figure(dpi = 300,figsize=(7,3.5))
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     voronoi_matrix = np.zeros(nr_of_rec*6)
     for sweeps in range(10):
-        with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
+        with open(f"{folder_path}test_0.0_stiffness_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
             way_matrix_y = np.load(f)
             grid_x = np.load(f)
             grid_y = np.load(f)
+        for i in np.arange(0,42*6,6):
+            plt.plot(way_matrix_x[i,:], way_matrix_y[i,:])
         for receptor in np.arange(1,7):
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
             first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
@@ -650,7 +652,7 @@ if __name__ == '__main__':
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
             voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
             
-    plt.figure(dpi = 300,figsize=(7,3.5))
+    
     plt.xlim(400,1100)
     plt.ylim(200,650)
     plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
@@ -660,14 +662,15 @@ if __name__ == '__main__':
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
     plt.title("Correct connected receptors out of 10 rounds")
     
-    plt.savefig(f"{folder_path}voronoi_matrix_croped.png")
+    plt.savefig(f"{folder_path}stiffness_0.0_voronoi_matrix_RT_1.png")
     
     #calcualting the performance based on the placement in the grid for the loss of a receptor
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    for rt in range(6):
+    for rt in np.arange(0,1.1,0.1):
+        rt = np.round(rt,1)
         voronoi_matrix = np.zeros(nr_of_rec*6)
         for sweeps in range(10):
-            with open(f"{folder_path}{rt}_rt_21_b_test_{sweeps}.npy", 'rb') as f:
+            with open(f"{folder_path}test_{rt}_stiffness_{sweeps}.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
@@ -681,9 +684,11 @@ if __name__ == '__main__':
                 voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
                 voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
                 
-        plt.figure(dpi = 300,figsize=(7,3.5))
-        plt.xlim(400,1100)
-        plt.ylim(200,650)
+        #plt.figure(dpi = 300,figsize=(7,3.5))
+        #plt.xlim(400,1100)
+        #plt.ylim(200,650)
+        #plt.figure(dpi = 300)
+
         plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
         cmap = mpl.cm.viridis
         bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
@@ -691,7 +696,7 @@ if __name__ == '__main__':
         plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
         plt.title("Correct connected receptors out of 10 rounds")
         
-        plt.savefig(f"{folder_path}rt_{rt}_voronoi_matrix_croped.png")
+        plt.savefig(f"{folder_path}stiffness_{rt}_voronoi_matrix.png")
         print(rt)
     
     #making plot of way_matrix
