@@ -360,7 +360,7 @@ def creat_start(calc_density):
     radius_fronts_avg = rm_fronts.mean(axis=1)*25.2
 
     horseshoe = create_starting_grid(np.array([0]),np.array([0]))
-    rows,cols = 1500, 1500 #have to be sqaured
+    rows,cols = 2000, 2000 #have to be sqaured
     dat2_inter = np.zeros((rows, cols))
     POS = np.meshgrid(np.arange(rows), np.arange(cols))
     heel_pos_x = np.array([],int)
