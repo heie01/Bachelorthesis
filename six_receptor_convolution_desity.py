@@ -593,6 +593,30 @@ def same_modell_distance(folder_path_1,range_1):
         receptors[receptor-1] = np.mean(middle_distance[rec_index])
     return receptors
 
+def length_of_step(folder_path_1,range_1):
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    bundle_receptor_step = np.zeros((6,10*6,20))
+    for fil_files in range(range_1):
+        with open(f"{folder_path_1}test_{fil_files}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        bundles = np.array([14, 15, 20, 21, 26, 27])*6
+        #bundle =14*6
+        for receptor in np.arange(6):
+            for ind, bundle in enumerate(bundles):
+                bundle_receptor_step[receptor,fil_files*6+ind,:] +=np.sqrt((way_matrix_x[bundle,1:] - way_matrix_x[bundle,:-1])**2+(way_matrix_y[bundle,1:] - way_matrix_y[bundle,:-1])**2)
+            bundles+=1
+        #for receptor in range(6):
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
+    axes = axes.flatten()
+    for receptor in range(6):
+        axes[receptor].violinplot(bundle_receptor_step[receptor,:,:])  
+        axes[receptor].set_title(f'Rezeptor {receptor + 1}')    
+    plt.tight_layout() 
+    plt.savefig(f"{folder_path_1}length_of_step.png")
+
     """
     saveing = quantify_correct_way(starting_pos_x, starting_pos_y, way_matrix_x[:,20],way_matrix_y[:,20])
     print(saveing)
@@ -618,10 +642,12 @@ if __name__ == '__main__':
     include_equator = False
     r3r4swap = False
     const_stiff = False
+
+    #length_of_step(folder_path,10)
     
     
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for angle_per in np.arange(1,2.1,0.2):
+    for angle_per in np.arange(1.2,2.0,0.2):
         angle_per = np.round(angle_per,1)
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
@@ -638,13 +664,14 @@ if __name__ == '__main__':
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     voronoi_matrix = np.zeros(nr_of_rec*6)
     for sweeps in range(10):
-        with open(f"{folder_path}test_0.0_stiffness_{sweeps}.npy", 'rb') as f:
+        with open(f"{folder_path}test_1.0_stiffness_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
             way_matrix_y = np.load(f)
             grid_x = np.load(f)
             grid_y = np.load(f)
-        for i in np.arange(0,42*6,6):
-            plt.plot(way_matrix_x[i,:], way_matrix_y[i,:])
+        for i in np.arange(42*6):
+            plt.plot(way_matrix_x[i,:], way_matrix_y[i,:],color=["blue","green","red","yellow","pink","orange"][np.mod(i,6)])
+            
         for receptor in np.arange(1,7):
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
             first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
@@ -662,7 +689,7 @@ if __name__ == '__main__':
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
     plt.title("Correct connected receptors out of 10 rounds")
     
-    plt.savefig(f"{folder_path}stiffness_0.0_voronoi_matrix_RT_1.png")
+    plt.savefig(f"{folder_path}stiffness_1.0_voronoi_matrix_RT_all.png")
     
     #calcualting the performance based on the placement in the grid for the loss of a receptor
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
