@@ -550,9 +550,9 @@ if __name__ == '__main__':
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
-    voronoi_matrix = np.zeros(42*6)
+    #voronoi_matrix = np.zeros(42*6)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for number in range(11):
+    for number in np.arange(9,11,1):
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
             with open(f"{folder_path}test_keep_{number}_fil_{sweeps}.npy", 'w+b') as f:
