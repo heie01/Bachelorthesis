@@ -484,8 +484,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 fil_matrix_x[R] = xfil
                 fil_matrix_y[R] = yfil      
 
-                way_matrix_x[R,time+1] = round((sum(xfil- front_x)/n_fil)*k_fil_scale + front_x)
-                way_matrix_y[R,time+1] = round((sum(yfil- front_y)/n_fil)*k_fil_scale + front_y)
+                way_matrix_x[R,time+1] = round((sum(xfil- front_x)/10)*k_fil_scale + front_x)
+                way_matrix_y[R,time+1] = round((sum(yfil- front_y)/10)*k_fil_scale + front_y)
             if making_movie:
                 if R == 80:
                     plt.imshow(ind,origin="lower",alpha=0.2)
@@ -552,7 +552,7 @@ if __name__ == '__main__':
     r3r4swap = False
     #voronoi_matrix = np.zeros(42*6)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for number in np.arange(9,11,1):
+    for number in np.arange(10):
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
             with open(f"{folder_path}test_keep_{number}_fil_{sweeps}.npy", 'w+b') as f:
@@ -573,7 +573,7 @@ if __name__ == '__main__':
             last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,"voronoi")
             voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
-        
+    
     plt.figure(dpi = 300)
     plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
 
