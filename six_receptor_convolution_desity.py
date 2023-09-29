@@ -432,6 +432,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     histogram_input = np.zeros((42,20))
     way_matrix_x = np.zeros((42*6,21))
     way_matrix_y = np.zeros((42*6,21))
+    step_size_fil = np.zeros((42*6,20))
+    step_size_stiff = np.zeros((42*6,20))
     fil_matrix_x = np.zeros((42*6,10))
     fil_matrix_y = np.zeros((42*6,10))
     
@@ -459,10 +461,10 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                     front_x, front_y = way_matrix_x[R,time],way_matrix_y[R,time]
                     angle = startangs_all[np.mod(R,6)]
                 else:
-                    #last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
-                    #angle = find_degree(last_front_x,last_front_y, front_x, front_y)
-                    heel_x,heel_y, front_x, front_y = way_matrix_x[R,0],way_matrix_y[R,0], way_matrix_x[R,time],way_matrix_y[R,time]
-                    angle = find_degree(heel_x, heel_y, front_x, front_y)
+                    last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
+                    angle = find_degree(last_front_x,last_front_y, front_x, front_y)
+                    #heel_x,heel_y, front_x, front_y = way_matrix_x[R,0],way_matrix_y[R,0], way_matrix_x[R,time],way_matrix_y[R,time]
+                    #angle = find_degree(heel_x, heel_y, front_x, front_y)
                 heel_x, heel_y = way_matrix_x[R,0],way_matrix_y[R,0]
                 ind = creat_mask(angle, front_x, front_y, roi_radius[np.mod(R,6)], roi_degree[np.mod(R,6)], mask)
                 
@@ -492,9 +494,10 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 else:
                     new_stiff_x = ((-front_x + heel_x)/(-time)) + front_x
                     new_stiff_y = ((-front_y + heel_y)/(-time)) + front_y
-
-                way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
-                way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
+                step_size_stiff[R,time+1] = np.sqrt((front_x-new_stiff_x)**2+(front_y-new_stiff_y)**2)
+                step_size_fil[R,time] = np.sqrt((front_x-new_fil_x)**2+(front_y-new_fil_y)**2)
+                way_matrix_x[R,time] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
+                way_matrix_y[R,time] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
             if making_movie:
                 if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray")
@@ -532,7 +535,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
         fronts_desity = kernel_parabola(0.5,POS[0], way_matrix_x[:,time+1],radius_fronts_avg, POS[1],way_matrix_y[:,time+1])
         dat2_inter =heels_desity+ fronts_desity
         
-    return way_matrix_x,way_matrix_y,starting_pos_x, starting_pos_y #, histogram_input
+    return way_matrix_x,way_matrix_y,starting_pos_x, starting_pos_y, step_size_fil, step_size_stiff #, histogram_input
 
 def modell_distance(folder_path_1,range_1, folder_path_2, range_2):
     #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
@@ -612,18 +615,72 @@ def length_of_step(folder_path_1,range_1):
                 bundle_receptor_step[receptor,fil_files*6+ind,:] +=np.sqrt((way_matrix_x[bundle,1:] - way_matrix_x[bundle,:-1])**2+(way_matrix_y[bundle,1:] - way_matrix_y[bundle,:-1])**2)
             bundles+=1
         #for receptor in range(6):
+    """
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
     axes = axes.flatten()
     for receptor in range(6):
         axes[receptor].violinplot(bundle_receptor_step[receptor,:,:])  
-        axes[receptor].set_title(f'Rezeptor {receptor + 1}')    
-    plt.tight_layout() 
-    plt.savefig(f"{folder_path_1}length_of_step.png")
+        axes[receptor].set_title(f'Rezeptor {receptor + 1}')"""
+    see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
+    see_through_error = np.array(see_through)-0.3
+    plt.figure(dpi=300) 
+    plt.axvspan(-1, 4, color='gray', alpha=0.5)
+    plt.text(1, 15.5, 'Stiffness', ha='center', va='center')
+    plt.text(7, 15.5, 'Density Sensing', ha='center', va='center')
+    #plt.fill_between(x, y-error, y+error)
+    for i in range(6):
+        mean = np.mean(bundle_receptor_step[i,:,:],axis = 0)
+        error = np.std(bundle_receptor_step[i,:,:],axis = 0)
+        plt.plot(np.arange(20),mean,'o-', markersize=3, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
+        plt.fill_between(np.arange(20),mean-error, mean+error,color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through_error[i])
+    #plt.tight_layout()
+    plt.xlim(-1,20)
+    plt.xlabel("Time in Hours") 
+    plt.ylabel("Stepsize") 
+    plt.xticks(np.arange(20))
+    plt.legend()
+    plt.savefig(f"{folder_path_1}length_of_step_median_std.png")
 
-    """
-    saveing = quantify_correct_way(starting_pos_x, starting_pos_y, way_matrix_x[:,20],way_matrix_y[:,20])
-    print(saveing)
-    count_rec_correct_way(saveing)"""
+def length_of_step_keep_fil(folder_path_1,range_1):
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    bundle_receptor_step = np.zeros((6,10*6,20))
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
+    axes = axes.flatten()
+    cmap = ['#0000FF','#1A1AFF','#3333CC','#4D4D99','#666666','#808080','#999966','#B2B233','#CCCCCC','#00FF00']
+    
+    for keep_fil in np.arange(10):
+        for fil_files in range(range_1):
+            with open(f"{folder_path_1}test_keep_{keep_fil}_fil_{fil_files}.npy", 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+            bundles = np.array([14, 15, 20, 21, 26, 27])*6
+            #bundle =14*6
+            for receptor in np.arange(6):
+                for ind, bundle in enumerate(bundles):
+                    bundle_receptor_step[receptor,fil_files*6+ind,:] +=np.sqrt((way_matrix_x[bundle,1:] - way_matrix_x[bundle,:-1])**2+(way_matrix_y[bundle,1:] - way_matrix_y[bundle,:-1])**2)
+                bundles+=1
+            #for receptor in range(6):
+        for i in range(6):
+            mean = np.mean(bundle_receptor_step[i,:,:],axis = 0)
+            error = np.std(bundle_receptor_step[i,:,:],axis = 0)
+            axes[i].plot(np.arange(20),mean,'o-', markersize=3, color =cmap[keep_fil],alpha=0.5, label = f"{keep_fil}")
+            axes[i].fill_between(np.arange(20),mean-error, mean+error,color =cmap[keep_fil],alpha=0.5)
+    for i in range(6):
+        axes[i].set_title(f"R{i+1}")
+    
+    
+    plt.tight_layout()
+    plt.xlim(-1,20)
+    plt.xlabel("Time in Hours") 
+    plt.ylabel("Stepsize") 
+    plt.xticks(np.arange(20))
+    plt.legend()
+    plt.savefig(f"{folder_path_1}length_of_step_median_std.png")
+
+    
+    #saveing = quantify_correct_way(starting_pos_x, starting_pos_y, way_matrix_x[:,20],way_matrix_y[:,20])
+    #print(saveing)
+    #count_rec_correct_way(saveing)
 
 if __name__ == '__main__':
     """import cProfile, pstats
@@ -639,29 +696,28 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = True
-    folder_path = f"./modell_tanh_stiffness_flashlight_angle_heel2front/"
+    making_movie = False
+    folder_path = f"./modell_tanh_stiffness_full_funct_adjust_grid_size/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
     const_stiff = False
 
-    #length_of_step(folder_path,10)
+    #length_of_step_keep_fil(folder_path,10)
     
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
     for sweeps in range(10):
-        if sweeps ==1:
-            making_movie = False
-        way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-        with open(f"{folder_path}test_{sweeps}.npy", 'w+b') as f:
+        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+        with open(f"{folder_path}test_step_size_{sweeps}.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
             np.save(f, way_matrix_y)
             np.save(f, grid_x)
             np.save(f, grid_y)
-    """
-    #calculating simularity of neightbouring bundles
+            np.save(f, step_fil)
+            np.save(f, step_stiff)
     
-
+    #calculating simularity of neightbouring bundles
+    """
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     voronoi_matrix = np.zeros((nr_of_rec*6,10))
     colors = ['#0000FF', '#1E90FF', '#4169E1', '#6495ED', '#67d1fc', '#79bbd1', '#67ffff', '#ffbc2d', '#FFA07A', '#FF0000']
@@ -781,21 +837,23 @@ if __name__ == '__main__':
     plt.tight_layout() 
 
     plt.savefig(f"{folder_path}receptor_missing.png")  
-    """ """
+    
+    #calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
     plt.figure(dpi = 300)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    performance = np.zeros((6,6))
+    performance = np.zeros((10,6))
+    performance_all = np.zeros(10)
     index_perf = 0
 
     bundle_index = [14, 15, 20, 21, 26, 27]
-    bundle_index = [14,15,20,21,22,26,27]
-    for rt in np.arange(1.0,2.0,0.2):
-        rt = np.round(rt,1)
+    #bundle_index = [14,15,20,21,22,26,27]
+    for rt in np.arange(10):
+        
         count =0
         voronoi_added = np.zeros(6)
         voronoi_matrix = np.zeros(nr_of_rec*6)
         for sweeps in range(10):
-            with open(f"{folder_path}angle_{rt}_test_{sweeps}.npy", 'rb') as f:
+            with open(f"{folder_path}test_keep_{rt}_fil_{sweeps}.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
@@ -811,11 +869,11 @@ if __name__ == '__main__':
                 voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int))
         print(voronoi_added)  
         performance[index_perf,:] = voronoi_added/(len(bundle_index)*10)
+        performance_all[index_perf]  = np.sum(voronoi_added)/count
         index_perf +=1
-
+    
     count = 0
     voronoi_added = np.zeros(6)
-    voronoi_matrix = np.zeros(nr_of_rec*6)
     for sweeps in range(10):
         with open(f"./modell_tanh_stiffness_full_funct_adjust_grid_size/test_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
@@ -831,70 +889,96 @@ if __name__ == '__main__':
             voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int))
     print(voronoi_added)
     performance[index_perf,:] = voronoi_added/(len(bundle_index)*10)
+    performance_all[index_perf]  = np.sum(voronoi_added)/count
     print(performance)
     #plt.scatter([50,60,70,80,90,100],performance)
+    
+    see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
     for i in range(6):
-        plt.plot([50,60,70,80,90,100],performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=0.8, label = f"R{i+1}")
-    plt.ylabel("Performance of inner bundles")
-    plt.ylim(0,1.1)
-    plt.xlabel("Flashlight percentage from experimentally found angle")
+        plt.plot(np.arange(10),performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
+    plt.plot(np.arange(10),performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
+    plt.ylabel("Performance of Inner Bundles")
+    #plt.ylim(0,1.1)
+    plt.xlabel("Keeping Filopodia for Next Round")
     plt.legend()
     #plt.title("The performance of correct connected receptors depending on flashlight angle percentage")
-    plt.savefig(f"{folder_path}performance_of_flashlight_angle_inner_7_b_rt_specific.png")
+    plt.savefig(f"{folder_path}performance_of_keep_fil_num.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
-
-   
-    #calcualting the performance based on the placement in the grid
     
+    """"""
+    rm_index = np.arange(20*6)
+    for index in np.arange(20*6,90*6,10*6):
+        rm_index = np.append(rm_index,np.arange(index,index+12,1))
+        rm_index = np.append(rm_index,np.arange(index+8*6,index+10*6,1))
+    rm_index = np.append(rm_index,np.arange(90*6,110*6,1))
+    #calcualting the performance based on the placement in the grid with bundle border
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    
-    inside = np.array([],dtype =int)
-    for i in np.arange(12,30,6):
-        inside = np.append(inside,np.arange(i+2, i+4,1))
-    print(inside)
-    index_perf = 0
-    performance = np.zeros(6)
-    for angle in np.arange(1,2,0.2):
-        voronoi_matrix = 0
-        for sweeps in range(10):
-            with open(f"{folder_path}angle_{np.round(angle,1)}_test_{sweeps}.npy", 'rb') as f:
-                way_matrix_x = np.load(f)
-                way_matrix_y = np.load(f)
-                grid_x = np.load(f)
-                grid_y = np.load(f)
-
-            for receptor in np.arange(1,7):
-                rec_index = np.arange(receptor-1,6*6,6)
-                #rec_index = [x for x in rec_index if x in inside]
-                
-                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
-                last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
-                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
-                voronoi_matrix += sum(voronoi_results.astype(int))
-        performance[index_perf] = voronoi_matrix
-        index_perf += 1
-
+    plt.figure(dpi = 300)
+    voronoi_matrix = np.zeros(nr_of_rec*6)
     for sweeps in range(10):
-        with open(f"modell_tanh_stiffness_full_funct_adjust_grid_size/test_{sweeps}.npy", 'rb') as f:
+        with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        way_matrix_x =way_matrix_x[:,15] 
+        way_matrix_y =way_matrix_x[:,15]
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            
+            first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+            
+            last_pos = np.array(list(zip(way_matrix_x[rec_index],way_matrix_y[rec_index])))
+            
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+            voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+            
+    #
+    #plt.xlim(400,1100)
+    #plt.ylim(200,650)
+    #plt.figure(dpi = 300)
+    plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
+    cmap = mpl.cm.viridis
+    bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
+    plt.title("Correct connected receptors out of 10 rounds")
+    plt.show()
+
+    
+    #calcualting the performance based on the placement in the grid
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    plt.figure(dpi = 300)
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    for sweeps in range(10):
+        with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
             way_matrix_y = np.load(f)
             grid_x = np.load(f)
             grid_y = np.load(f)
         for receptor in np.arange(1,7):
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
-            rec_index = inside[rec_index]
             first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+            
             last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+            
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
-            voronoi_matrix += sum(voronoi_results.astype(int))
-    performance[index_perf] = voronoi_matrix
-    performance = performance/(6*6)
+            voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+            
+    #
+    #plt.xlim(400,1100)
+    #plt.ylim(200,650)
+    #plt.figure(dpi = 300)
+    plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
+    cmap = mpl.cm.viridis
+    bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
+    plt.title("Correct connected receptors out of 10 rounds")
+    plt.show()
+    
+    plt.savefig(f"{folder_path}voronoi_matrix.png")
 
-    plt.scatter([50,60,70,80,90,100],performance, s=10)
-    plt.ylabel("Performance of inner bundles")
-    plt.xlabel("Flashlight percentage from experimentally found angle")
-    plt.title("The performance of flashlight angle percentage")
-    #plt.savefig(f"{folder_path}flashlight_angle_performance.png")
     
     #calcualting the performance based on the placement in the grid for the loss of a receptor
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
