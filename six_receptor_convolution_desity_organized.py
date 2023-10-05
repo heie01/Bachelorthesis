@@ -386,10 +386,10 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 else:
                     new_stiff_x = ((-front_x + heel_x)/(-time)) + front_x
                     new_stiff_y = ((-front_y + heel_y)/(-time)) + front_y
-                step_size_stiff[R,time+1] = np.sqrt((front_x-new_stiff_x)**2+(front_y-new_stiff_y)**2)
+                step_size_stiff[R,time] = np.sqrt((front_x-new_stiff_x)**2+(front_y-new_stiff_y)**2)
                 step_size_fil[R,time] = np.sqrt((front_x-new_fil_x)**2+(front_y-new_fil_y)**2)
-                way_matrix_x[R,time] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
-                way_matrix_y[R,time] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
+                way_matrix_x[R,time+1] = round( s_time * new_stiff_x + (1-s_time) * new_fil_x)
+                way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
             if making_movie:
                 if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray")
@@ -522,18 +522,19 @@ def length_of_step(folder_path_1,range_1):
     plt.legend()
     plt.savefig(f"{folder_path_1}length_of_step_median_std.png")
 
-def length_of_step_keep_fil(folder_path_1,range_1):
+def length_of_step_keep_fil(folder_path_1):
     """
     comparing the steplength of different keep_fil_numbers for each receptor type for the six inner bundles for each time step
     """
     #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    bundle_receptor_step = np.zeros((6,10*6,20))
+    
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
     axes = axes.flatten()
     cmap = ['#0000FF','#1A1AFF','#3333CC','#4D4D99','#666666','#808080','#999966','#B2B233','#CCCCCC','#00FF00']
     
     for keep_fil in np.arange(10):
-        for fil_files in range(range_1):
+        bundle_receptor_step = np.zeros((6,10*6,20))
+        for fil_files in range(10):
             with open(f"{folder_path_1}test_keep_{keep_fil}_fil_{fil_files}.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
@@ -541,7 +542,7 @@ def length_of_step_keep_fil(folder_path_1,range_1):
             #bundle =14*6
             for receptor in np.arange(6):
                 for ind, bundle in enumerate(bundles):
-                    bundle_receptor_step[receptor,fil_files*6+ind,:] +=np.sqrt((way_matrix_x[bundle,1:] - way_matrix_x[bundle,:-1])**2+(way_matrix_y[bundle,1:] - way_matrix_y[bundle,:-1])**2)
+                    bundle_receptor_step[receptor,fil_files*6+ind,:] =np.sqrt((way_matrix_x[bundle,1:] - way_matrix_x[bundle,:-1])**2+(way_matrix_y[bundle,1:] - way_matrix_y[bundle,:-1])**2)
                 bundles+=1
             #for receptor in range(6):
         for i in range(6):
@@ -559,10 +560,61 @@ def length_of_step_keep_fil(folder_path_1,range_1):
     plt.ylabel("Stepsize") 
     plt.xticks(np.arange(20))
     plt.legend()
-    plt.savefig(f"{folder_path_1}new_length_of_step_median_std.png")
+    plt.savefig(f"{folder_path_1}new_test_length_of_step_median_std.png")
     """
     found error in keep fil file
     """
+
+def length_of_stiff_fil(folder_path_1):
+    """
+    comparing the length of stiffness and filopodia drag for each receptor type for the six inner bundles for each time step
+    """
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    
+    fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(12, 8))
+    axes = axes.flatten()
+    cmap = ['#0000FF','#1A1AFF','#3333CC','#4D4D99','#666666','#808080','#999966','#B2B233','#CCCCCC','#00FF00']
+    
+
+    bundle_receptor_stiff = np.zeros((6,10*6,20))
+    bundle_receptor_fil = np.zeros((6,10*6,20))
+    for fil_files in range(10):
+        with open(f"{folder_path_1}test_step_size_{fil_files}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+            step_fil = np.load(f)
+            step_stiff = np.load(f)
+        print(  np.count_nonzero(step_fil == 0))
+        print(  np.count_nonzero(step_stiff == 0))
+        bundles = np.array([14, 15, 20, 21, 26, 27])*6
+        #bundle =14*6
+        for receptor in np.arange(6):
+            for ind, bundle in enumerate(bundles):
+                bundle_receptor_stiff[receptor,fil_files*6+ind,:] =step_stiff[bundle+ind,:]
+                bundle_receptor_fil[receptor,fil_files*6+ind,:] =step_fil[bundle+ind,:]
+            bundles+=1
+        #for receptor in range(6):
+    for i in range(6):
+        mean = np.mean(bundle_receptor_fil[i,:,:],axis = 0)
+        mean_stiff = np.mean(bundle_receptor_stiff[i,:,:],axis = 0)
+        error = np.std(bundle_receptor_fil[i,:,:],axis = 0)
+        error_stiff = np.std(bundle_receptor_stiff[i,:,:],axis = 0)
+        axes[i].plot(np.arange(20),mean,'o-', markersize=3, color ="red",alpha=0.5, label = f"filopodium")
+        axes[i].fill_between(np.arange(20),mean-error, mean+error,color ="red",alpha=0.5)
+        axes[i].plot(np.arange(20),mean_stiff,'o-', markersize=3, color ="blue",alpha=0.5, label = f"stiffness")
+        axes[i].fill_between(np.arange(20),mean_stiff-error_stiff, mean_stiff+error_stiff,color ="blue",alpha=0.5)
+        axes[i].set_title(f"R{i+1}")
+    
+    plt.tight_layout()
+    plt.xlim(-1,20)
+    plt.xlabel("Time in Hours") 
+    plt.ylabel("Stepsize") 
+    plt.xticks(np.arange(20))
+    plt.legend()
+    #plt.savefig(f"{folder_path_1}stiffness_vs_filopodium_length.png")
+    
 
 def rec_miss_change_rate():
     """
@@ -865,7 +917,8 @@ if __name__ == '__main__':
     r3r4swap = False
     const_stiff = False
 
-    #length_of_step_keep_fil(folder_path,10)
+    #length_of_step_keep_fil(folder_path)
+    #length_of_stiff_fil(folder_path)
     run_main(True,"test_step_size_")
     
     """profiler.disable()
