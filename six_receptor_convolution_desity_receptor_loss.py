@@ -428,7 +428,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     n_fil = 10
     startangs_all = np.pi/180 * np.array([-140.6786, -64.3245, -17.25796667, 5.312072, 63.2865, 135.0751667])
     new_speed = np.array([4.04627765, 1.12029122, 0.95092257, 0.77632871, 0.94118902, 4.01210285])
-    speeds = np.array([0.093, 0.053, 0.148, 0.09, 0.052, 0.077]) *new_speed
+    speeds = np.array([0.093, 0.053, 0.148, 0.09, 0.052, 0.077])
+    stiff_speed = speeds*new_speed
     s_steap = 0.75
     s_x_move = 25
 
@@ -493,7 +494,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 new_fil_y = (sum(yfil- front_y)/n_fil)*k_fil_scale + front_y
 
                 if time == 0:
-                    new_stiff_x, new_stiff_y = find_point_2degree(front_x, front_y,2*roi_radius[np.mod(R,6)]*np.sin(angle)*k_fil_scale/(3*angle), angle)
+                    k_stiff_scale = stiff_speed[np.mod(R,6)]
+                    new_stiff_x, new_stiff_y = find_point_2degree(front_x, front_y,2*roi_radius[np.mod(R,6)]*np.sin(angle)*k_stiff_scale/(3*angle), angle)
 
                 else:
                     new_stiff_x = ((-front_x + heel_x)/(-time)) + front_x
@@ -622,7 +624,7 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./modell_h2f_tanh_stiffness_receptor_loss/"
+    folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_receptor_loss/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False

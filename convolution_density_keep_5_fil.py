@@ -421,7 +421,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     #n_fil = 10
     startangs_all = np.pi/180 * np.array([-140.6786, -64.3245, -17.25796667, 5.312072, 63.2865, 135.0751667])
     new_speed = np.array([4.04627765, 1.12029122, 0.95092257, 0.77632871, 0.94118902, 4.01210285])
-    speeds = np.array([0.093, 0.053, 0.148, 0.09, 0.052, 0.077]) *new_speed    
+    speeds = np.array([0.093, 0.053, 0.148, 0.09, 0.052, 0.077])    
     s_steap = 0.75
     s_x_move = 25
 
@@ -549,7 +549,7 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./modell_h2f_keep_fil_number_analyse/"
+    folder_path = f"./modell_h2f_stiff_spsc_keep_fil_number_analyse/"
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
@@ -558,7 +558,7 @@ if __name__ == '__main__':
     for number in np.arange(10):
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
-            with open(f"{folder_path}test_keep_{number}_fil_{sweeps}.npy", 'w+b') as f:
+            with open(f"{folder_path}keep_{number}_fil_test_{sweeps}.npy", 'w+b') as f:
                 np.save(f, way_matrix_x)
                 np.save(f, way_matrix_y)
                 np.save(f, grid_x)
