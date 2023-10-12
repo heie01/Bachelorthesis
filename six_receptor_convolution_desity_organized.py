@@ -1081,11 +1081,11 @@ if __name__ == '__main__':
     const_stiff = False
     angle_per = 2
 
-    folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse"
+    folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
     for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
         run_main(False, f"stiffness_{constanct_stiff}_test_")
-    folder_path = f"modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse"
+    folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse/"
     const_stiff = False
     for angle_per in np.around(np.arange(1,2.1,0.2),1):
         run_main(False, f"angle_{angle_per}_test_")
