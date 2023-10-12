@@ -901,7 +901,7 @@ def comp_performance_plot():
         voronoi_added = np.zeros(6)
         voronoi_matrix = np.zeros(nr_of_rec*6)
         for sweeps in range(10):
-            with open(f"{folder_path}test_{rt}_stiffness_{sweeps}.npy", 'rb') as f:
+            with open(f"{folder_path}stiffness_{rt}_test_{sweeps}.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
@@ -943,7 +943,7 @@ def comp_performance_plot():
         plt.plot(np.arange(0,1.1,0.1),performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
     plt.plot(np.arange(0,1.1,0.1),performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
     plt.ylabel("Performance of Inner Bundles")
-    #plt.ylim(0,1.1)
+    plt.ylim(0,1.1)
     #plt.xticks(np.arange(11), ['0','1', '2', '3', '4', '5','6','7','8','9','original'])
     plt.xlabel("Constant Stiffness")
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -1071,19 +1071,13 @@ if __name__ == '__main__':
     making_movie = False
     nr_of_rec = 42 #number of bundles
     include_equator = False
-    r3r4swap = False
-
-
-    folder_path = f"./modell_h2f_tanh_stiffness_flashlight_width_analyse/"
+    r3r4swap = False    
+    folder_path = f"./modell_h2f_speedscaling_tanh_stiffness_normal/"
     const_stiff = False
-    for angle_per in np.round(np.arange(1,2.1,0.2),1):
-        run_main(False,f"angle_{angle_per}_test_")
+    angle_per = 2
     
-    folder_path = "./modell_h2f_constant_stiffness_anaylse/"
-    const_stiff = True
-    for constanct_stiff in np.round(np.arange(0,1.05,0.1),1):
-        run_main(False,f"stiffness_{constanct_stiff}_test_")
-
+    run_main(False,f"test_")
+    
     #voronoid_grid_repeat()
     #comp_performance_plot()
     #length_of_step(folder_path,10)
