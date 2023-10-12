@@ -1077,17 +1077,24 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False    
-    folder_path = f"./modell_h2f_stiff_speedscaling_tanh_stiffness_normal/"
+    folder_path = f"./modell_tanh_stiffness_flashlight_angle_heel2front/"
     const_stiff = False
     angle_per = 2
 
-    #run_main(False,f"test_")
+    folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse"
+    const_stiff = True
+    for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
+        run_main(False, f"stiffness_{constanct_stiff}_test_")
+    folder_path = f"modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse"
+    const_stiff = False
+    for angle_per in np.around(np.arange(1,2.1,0.2),1):
+        run_main(False, f"angle_{angle_per}_test_")
     #plot_way_matrix()
-    #voronoid_grid_repeat()
+    #voronoi_grid(folder_path, 15)
     #comp_performance_plot()
     #length_of_step(folder_path,10)
     #length_of_stiff_fil_violin(folder_path)
-    run_main(False,"test_")
+    #run_main(False,"test_")
     
     """profiler.disable()
     stats = pstats.Stats(profiler).sort_stats('cumtime')
