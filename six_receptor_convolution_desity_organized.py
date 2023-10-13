@@ -377,11 +377,13 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             else:
                 k_fil_scale = speeds[np.mod(R,6)]
                 mask = np.zeros((rows, cols), dtype= bool) #mask_emtpy
-                if time == 0:
+                if time == 0: 
                     way_matrix_x[R,time] = heel_pos_x[R]
                     way_matrix_y[R,time] = heel_pos_y[R]
                     front_x, front_y = way_matrix_x[R,time],way_matrix_y[R,time]
                     angle = startangs_all[np.mod(R,6)]
+                    if change_angle and R==(21*6+2):
+                        angle += change
                 else:
                     #last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
                     #angle = find_degree(last_front_x,last_front_y, front_x, front_y)
@@ -515,7 +517,7 @@ def length_of_step(folder_path_1,range_1):
     #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     bundle_receptor_step = np.zeros((6,10*6,20))
     for fil_files in range(range_1):
-        with open(f"{folder_path_1}test_step_size_{fil_files}.npy", 'rb') as f:
+        with open(f"{folder_path_1}test_{fil_files}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
             way_matrix_y = np.load(f)
             grid_x = np.load(f)
@@ -537,8 +539,8 @@ def length_of_step(folder_path_1,range_1):
     see_through_error = np.array(see_through)-0.3
     plt.figure(dpi=300) 
     plt.axvspan(-1, 4, color='gray', alpha=0.5)
-    plt.text(1, 15.5, 'Stiffness', ha='center', va='center')
-    plt.text(7, 15.5, 'Density Sensing', ha='center', va='center')
+    plt.text(1, 14.5, 'Stiffness', ha='center', va='center')
+    plt.text(7, 14.5, 'Density Sensing', ha='center', va='center')
     #plt.fill_between(x, y-error, y+error)
     for i in range(6):
         mean = np.mean(bundle_receptor_step[i,:,:],axis = 0)
@@ -551,7 +553,7 @@ def length_of_step(folder_path_1,range_1):
     plt.ylabel("Stepsize") 
     plt.xticks(np.arange(20))
     plt.legend()
-    plt.savefig(f"{folder_path_1}length_of_step_median_std_round_2.png")
+    plt.savefig(f"{folder_path_1}length_of_step_median_std.png")
 
 def speed_scaling():
     """
@@ -889,21 +891,22 @@ def comp_performance_plot():
     calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
     with the plot for each subtype and all together
     """
+    range_ = np.arange(10)
+
     plt.figure(dpi = 300, figsize=(10,6))
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    performance = np.zeros((6,6))
-    performance_all = np.zeros(6)
+    performance = np.zeros((range_.size,6))
+    performance_all = np.zeros(range_.size)
     index_perf = 0
-
+    
     bundle_index = [14, 15, 20, 21, 26, 27]
     #bundle_index = [14, 15, 20, 21, 22, 26, 27]
-    for rt in np.arange(1.0,2.1,0.2):
-        rt = np.round(rt,1)
+    for rt in range_:
         count =0
         voronoi_added = np.zeros(6)
         voronoi_matrix = np.zeros(nr_of_rec*6)
         for sweeps in range(10):
-            with open(f"{folder_path}angle_{rt}_test_{sweeps}.npy", 'rb') as f:
+            with open(f"{folder_path}keep_{rt}_fil_test_{sweeps}.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
@@ -942,16 +945,16 @@ def comp_performance_plot():
     """
     see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
     for i in range(6):
-        plt.plot(np.arange(50,105,10),performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
-    plt.plot(np.arange(50,105,10),performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
+        plt.plot(range_,performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
+    plt.plot(range_,performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
     plt.ylabel("Performance of Inner Bundles")
     plt.ylim(0,1.1)
     #plt.xticks(np.arange(11), ['0','1', '2', '3', '4', '5','6','7','8','9','original'])
     #plt.xticks(np.arange(5), ['50','', '2', '3', '4', '5','6','7','8','9','original'])
-    plt.xlabel("Percentange of flashlight width of previous experiment")
+    plt.xlabel("Number of kept filopodial per round")
     plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     #plt.title("The performance of correct connected receptors depending on flashlight angle percentage")
-    plt.savefig(f"{folder_path}performance_of_constant_stiff.png")
+    plt.savefig(f"{folder_path}performance_of_keep_fil.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
 
 def voronoi_grid(folder_path, time_index):
@@ -1077,10 +1080,22 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False    
-    folder_path = f"./modell_tanh_stiffness_flashlight_angle_heel2front/"
+    folder_path = f"./modell_h2f_stiff_spsc_normal_change_R3_init_angle/"
     const_stiff = False
     angle_per = 2
-
+    change_angle = True
+    change = ( np.pi/180 * 10)
+    run_main(False,"plus_10_degree_test_" )
+    change = -( np.pi/180 * 10)
+    run_main(False,"minus_10_degree_test_" )
+    folder_path = f"./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"
+    const_stiff = True
+    constanct_stiff = 1
+    change = (np.pi/180 * 10)
+    run_main(False,"plus_10_degree_test_" )
+    change = -(np.pi/180 * 10)
+    run_main(False,"minus_10_degree_test_" )
+    """
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
     for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
@@ -1089,6 +1104,7 @@ if __name__ == '__main__':
     const_stiff = False
     for angle_per in np.around(np.arange(1,2.1,0.2),1):
         run_main(False, f"angle_{angle_per}_test_")
+    """
     #plot_way_matrix()
     #voronoi_grid(folder_path, 15)
     #comp_performance_plot()
