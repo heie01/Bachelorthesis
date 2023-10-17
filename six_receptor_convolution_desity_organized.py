@@ -1250,12 +1250,18 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False  
+    const_stiff = False
+    change_angle = False
+    folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse/"
     
-    folder_path = f"./modell_h2f_stiff_spsc_normal_change_R3_init_angle/"
+    for angle_per in np.around(np.arange(2.2,4.1,0.2)):
+        run_main(False,f"angle_{angle_per}_test_",10)
+    """
+    folder_path = ""
     const_stiff = False
     angle_per = 2
-    change_angle = True
-    for i in np.range(11,20):
+    
+    for i in np.arange(11,20):
         change = ( np.pi/180 * i)
         run_main(False,f"plus_{i}_degree_test_",2 )
         change = -( np.pi/180 * i)
@@ -1267,7 +1273,7 @@ if __name__ == '__main__':
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"
     const_stiff = True
     constanct_stiff = 1
-    for i in np.range(11,20):
+    for i in np.arange(11,20):
         change = ( np.pi/180 * i)
         run_main(False,f"plus_{i}_degree_test_",1)
         change = -( np.pi/180 * i)
@@ -1276,7 +1282,7 @@ if __name__ == '__main__':
         change = -( np.pi/180 * i)
         run_main(False,f"minus_{i}_degree_test_",1)
 
-    """
+    
     
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
