@@ -461,34 +461,33 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 
                 if time ==0:
                     n_fil =10
+                    x_point,y_point = find_point_2degree(front_x, front_y, roi_radius[np.mod(R,6)]/2, angle)
+                    xfil= np.zeros(10)+x_point
+                    yfil= np.zeros(10)+y_point
                 else:
-                    n_fil = 10-keep_fil_num
-                    keep_index = random.sample(range(10), keep_fil_num) 
-                    
-                rr = np.random.rand(n_fil) # sample n_fil = 10 random uniform [0, 1[ numbers
+                    if keep_fil_num==10:
+                        xfil = fil_matrix_x[R,:]+(way_matrix_x[R,time]-way_matrix_x[R,time-1])
+                        yfil = fil_matrix_y[R,:]+(way_matrix_y[R,time]-way_matrix_y[R,time-1])
+                    else:
+                        n_fil = 10-keep_fil_num
+                        keep_index = random.sample(range(10), keep_fil_num) 
+                        
+                        rr = np.random.rand(n_fil) # sample n_fil = 10 random uniform [0, 1[ numbers
     
-                ind_res = np.array([np.where(cs < rtemp)[0][0] for rtemp in rr]) # at what index does the cumulative density function cross the rr value?
-                vals = ((bins[1:] + bins[:-1])/2)[ind_res] # translate the index into density value, using the middle of the bins
-                # now I want to use the density values in vals and find a position in the ROI that corresponds to that density value
-                D_vals = np.abs(vals[:, None] - dat2_inter[ind][None, :]) # distance of vals to all the density values in the ROI
-                xfil, yfil = np.array([]), np.array([])
-                xfil = np.hstack((xfil, POS[0][ind][D_vals.argmin(axis=1)])) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
-                yfil = np.hstack((yfil, POS[1][ind][D_vals.argmin(axis=1)]))
-                
-                #keeping 5 filopodia of
-                keep_fill_x = fil_matrix_x[R,keep_index]+(way_matrix_x[R,time]-way_matrix_x[R,time-1])
-                keep_fill_y = fil_matrix_y[R,keep_index]+(way_matrix_y[R,time]-way_matrix_y[R,time-1])
-                if R==80 and time >0:
-                    print("fil_matrix_x",fil_matrix_x[R])
-                    print("keep_fil_x",keep_fill_x,"way_matrix_x_time",way_matrix_x[R,time],"way_matrix_x_time-1",way_matrix_x[R,time-1])
-                    print("fil_matrix_y",fil_matrix_y[R])
-                    print("keep_fil_y",keep_fill_y,"way_matrix_y_time",way_matrix_x[R,time],"way_matrix_y_time-1",way_matrix_x[R,time-1])
-                xfil = np.hstack((xfil, keep_fill_x)) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
-                yfil = np.hstack((yfil, keep_fill_y))
+                        ind_res = np.array([np.where(cs < rtemp)[0][0] for rtemp in rr]) # at what index does the cumulative density function cross the rr value?
+                        vals = ((bins[1:] + bins[:-1])/2)[ind_res] # translate the index into density value, using the middle of the bins
+                        # now I want to use the density values in vals and find a position in the ROI that corresponds to that density value
+                        D_vals = np.abs(vals[:, None] - dat2_inter[ind][None, :]) # distance of vals to all the density values in the ROI
+                        xfil, yfil = np.array([]), np.array([])
+                        xfil = np.hstack((xfil, POS[0][ind][D_vals.argmin(axis=1)])) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
+                        yfil = np.hstack((yfil, POS[1][ind][D_vals.argmin(axis=1)]))
     
-            
-                #print(way_matrix_x[R,time]-way_matrix_x[R,time-1],xfil,(way_matrix_y[R,time]-way_matrix_y[R,time-1]),yfil)
-            
+                        #keeping 5 filopodia of
+                        keep_fill_x = fil_matrix_x[R,keep_index]+(way_matrix_x[R,time]-way_matrix_x[R,time-1])
+                        keep_fill_y = fil_matrix_y[R,keep_index]+(way_matrix_y[R,time]-way_matrix_y[R,time-1])
+                        xfil = np.hstack((xfil, keep_fill_x)) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
+                        yfil = np.hstack((yfil, keep_fill_y))
+
                 fil_matrix_x[R] = xfil
                 fil_matrix_y[R] = yfil      
 
@@ -501,9 +500,6 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
                 if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
-            
-        if time ==3:
-            break
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
         if making_movie:
                 #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
@@ -557,20 +553,22 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./modell_h2f_stiff_spsc_keep_fil_number_check_correct/"
+    folder_path = f"./modell_h2f_stiff_spsc_keep_fil_num_stiff_start/"
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
     #voronoi_matrix = np.zeros(42*6)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for number in np.arange(1):
+    for number in np.arange(11):
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
-            #with open(f"{folder_path}keep_{number}_fil_test_{sweeps}.npy", 'w+b') as f:
-            #    np.save(f, way_matrix_x)
-            #    np.save(f, way_matrix_y)
-            #    np.save(f, grid_x)
-            #    np.save(f, grid_y)
+            with open(f"{folder_path}keep_{number}_fil_test_{sweeps}.npy", 'w+b') as f:
+                np.save(f, way_matrix_x)
+                np.save(f, way_matrix_y)
+                np.save(f, grid_x)
+                np.save(f, grid_y)
+            if number==10:
+                break
         """heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
         with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
