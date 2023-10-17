@@ -478,6 +478,11 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 #keeping 5 filopodia of
                 keep_fill_x = fil_matrix_x[R,keep_index]+(way_matrix_x[R,time]-way_matrix_x[R,time-1])
                 keep_fill_y = fil_matrix_y[R,keep_index]+(way_matrix_y[R,time]-way_matrix_y[R,time-1])
+                if R==80 and time >0:
+                    print("fil_matrix_x",fil_matrix_x[R])
+                    print("keep_fil_x",keep_fill_x,"way_matrix_x_time",way_matrix_x[R,time],"way_matrix_x_time-1",way_matrix_x[R,time-1])
+                    print("fil_matrix_y",fil_matrix_y[R])
+                    print("keep_fil_y",keep_fill_y,"way_matrix_y_time",way_matrix_x[R,time],"way_matrix_y_time-1",way_matrix_x[R,time-1])
                 xfil = np.hstack((xfil, keep_fill_x)) # take the minimum distance in density and use this position (POS is a meshgrid of all possible positions, same shape as dat2_inter
                 yfil = np.hstack((yfil, keep_fill_y))
     
@@ -496,6 +501,9 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
                 if np.mod(R,6) ==5:
                     plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=0)
+            
+        if time ==3:
+            break
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
         if making_movie:
                 #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
@@ -549,20 +557,20 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./modell_h2f_stiff_spsc_keep_fil_number_analyse/"
+    folder_path = f"./modell_h2f_stiff_spsc_keep_fil_number_check_correct/"
     nr_of_rec = 42
     include_equator = False
     r3r4swap = False
     #voronoi_matrix = np.zeros(42*6)
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for number in np.arange(10):
+    for number in np.arange(1):
         for sweeps in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg, number) 
-            with open(f"{folder_path}keep_{number}_fil_test_{sweeps}.npy", 'w+b') as f:
-                np.save(f, way_matrix_x)
-                np.save(f, way_matrix_y)
-                np.save(f, grid_x)
-                np.save(f, grid_y)
+            #with open(f"{folder_path}keep_{number}_fil_test_{sweeps}.npy", 'w+b') as f:
+            #    np.save(f, way_matrix_x)
+            #    np.save(f, way_matrix_y)
+            #    np.save(f, grid_x)
+            #    np.save(f, grid_y)
         """heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
         with open(f"{folder_path}test_{sweeps}.npy", 'rb') as f:
             way_matrix_x = np.load(f)
