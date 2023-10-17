@@ -382,7 +382,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                     way_matrix_y[R,time] = heel_pos_y[R]
                     front_x, front_y = way_matrix_x[R,time],way_matrix_y[R,time]
                     angle = startangs_all[np.mod(R,6)]
-                    if change_angle and R==(21*6+2):
+                    if change_angle and R in (np.array([14, 15, 20, 21, 26, 27])*6+2):
                         angle += change
                 else:
                     #last_front_x,last_front_y, front_x, front_y = way_matrix_x[R,time-1],way_matrix_y[R,time-1], way_matrix_x[R,time],way_matrix_y[R,time]
@@ -795,7 +795,7 @@ def rec_miss_change_rate():
     index_row = [0,1,0,1,2,0,1]
     b_indexs = np.array([14,15,20,21,22,26,27])
     for i in range(7):
-        folder_path = f"./modell_tanh_stiffness_full_funct_adjust_grid_size/"
+        folder_path = f"./modell_h2f_stiff_speedscaling_tanh_stiffness_normal/"
         all_receptor = np.zeros((6))
         b_index = b_indexs[i]
         for sweeps in range(10):
@@ -810,7 +810,7 @@ def rec_miss_change_rate():
                 last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
                 voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
                 all_receptor[(receptor-1)] += voronoi_results[b_index].astype(int)
-        folder_path = f"./modell_tanh_stiffness_receptor_loss/"
+        folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_receptor_loss/"
 
         rec_missing = np.zeros((6,6))
         for rec_miss in range(6):
@@ -837,8 +837,8 @@ def rec_miss_change_rate():
         axs[index_col[i],index_row[i]].set_ylabel("Performance of Receptor")
         axs[index_col[i],index_row[i]].set_xlabel("Killed Receptors")
     
-    plt.show()
-    #plt.savefig(f"{folder_path}receptor_missing.png")  
+    #plt.show()
+    plt.savefig(f"{folder_path}receptor_missing.png")  
   
 def similar_neightbours():
     """
@@ -962,16 +962,21 @@ def comp_performance_init_angle_bar():
     calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
     with the plot for each subtype and all together
     """
-    range_ = np.array(["minus_","plus_"])
-
-    plt.figure(dpi = 300, figsize=(10,6))
+    fig, axs = plt.subplots(2, figsize=(10, 6), dpi=300)
+    axs_index = 0
+    range_ = np.array(["minus_30","minus_20","minus_10","plus_10","plus_20","plus_30"])
+    legend_ = ["normal model general performance","normal model R3 performance", "stiffness model general performance","stiffness model R3 performance"]
+    legend_ = ["normal model","stiffness model" ]
+    leg_index = 0
+    #plt.figure(dpi = 300, figsize=(10,6))
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-    performance = np.zeros((range_.size,6))
-    performance_all = np.zeros(range_.size)
-    
-    bar_range = np.array([-1,1])-0.2
-    bundle_index = [14, 15, 20, 21, 26, 27]
+    performance = np.zeros((range_.size+1,6))
+    performance_all = np.zeros(range_.size+1)
+    see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
+    bar_range = np.arange(-3,4,1)-0.2
+    #bundle_index = [14, 15, 20, 21, 26, 27]
     #bundle_index = [14, 15, 20, 21, 22, 26, 27]
+    bundle_index = [21]
     for folder_path in ["./modell_h2f_stiff_spsc_normal_change_R3_init_angle/", "./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"]:
         index_perf = 0
         
@@ -979,7 +984,7 @@ def comp_performance_init_angle_bar():
             count =0
             voronoi_added = np.zeros(6)
             for sweeps in range(10):
-                with open(f"{folder_path}{rt}10_degree_test_{sweeps}.npy", 'rb') as f:
+                with open(f"{folder_path}{rt}_degree_test_{sweeps}.npy", 'rb') as f:
                     way_matrix_x = np.load(f)
                     way_matrix_y = np.load(f)
                     grid_x = np.load(f)
@@ -992,21 +997,135 @@ def comp_performance_init_angle_bar():
                     voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
                     voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int)) 
             performance[index_perf,:] = voronoi_added/(len(bundle_index)*10)
-            performance_all[index_perf]  = np.sum(voronoi_added)
+            performance_all[index_perf]  = np.sum(voronoi_added)/count
             index_perf +=1
-        plt.bar(bar_range,performance_all, 0.2)
-        bar_range += 0.2
-    plt.legend(["normal model general performance", "stiffness model general performance"])
+            if rt=="minus_10":
+                index_perf +=1
+        
+        count =0
+        voronoi_added = np.zeros(6)
+        for sweeps in range(10):
+            if folder_path =="./modell_h2f_stiff_spsc_normal_change_R3_init_angle/":
+                with open(f"./modell_h2f_stiff_speedscaling_tanh_stiffness_normal/test_{sweeps}.npy", 'rb') as f:
+                    way_matrix_x = np.load(f)
+                    way_matrix_y = np.load(f)
+                    grid_x = np.load(f)
+                    grid_y = np.load(f)
+            else:
+                with open(f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/stiffness_1.0_test_{sweeps}.npy", 'rb') as f:
+                    way_matrix_x = np.load(f)
+                    way_matrix_y = np.load(f)
+                    grid_x = np.load(f)
+                    grid_y = np.load(f)
+
+            for receptor in np.arange(1,7):
+                count +=len(bundle_index)
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int)) 
+        performance[3,:] = voronoi_added/(len(bundle_index)*10)
+        performance_all[3]  = np.sum(voronoi_added)/count
+        for i in range(6):
+            axs[axs_index].plot(np.arange(-30,40,10),performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
+        axs[axs_index].plot(np.arange(-30,40,10),performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
+        axs[axs_index].set_title(legend_[axs_index])
+        axs[axs_index].set_ylim(-0.1,1.1)
+        axs[axs_index].legend()
+        axs_index+=1
+        #plt.bar(bar_range,performance_all, 0.2,label =legend_[leg_index])
+        #leg_index += 1
+        #plt.bar(bar_range+0.45,performance[:,2], 0.2,label = legend_[leg_index])
+        #leg_index += 1
+        #bar_range += 0.2
+    #plt.legend(loc = "lower right")
     plt.ylabel("Performance of Inner Bundles")
-    #plt.ylim(0,1.1)
+    
     #plt.xticks(np.arange(11), ['0','1', '2', '3', '4', '5','6','7','8','9','original'])
     #plt.xticks(np.arange(6), ['50',"60","70","80","90","100"])
-    plt.xlabel("Intial angle change")
+    plt.xlabel("Intial angle change in degree")
     #plt.title("The performance of correct connected receptors depending on flashlight angle percentage")
-    plt.savefig(f"{folder_path}performance.png")
+    plt.tight_layout()
+    #plt.show()
+    plt.savefig(f"{folder_path}performance_changed_bundle_plot.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
 
+def comp_voronoi_grid_init_angle():
+    """
+    calcualting the performance based on the placement in the grid for the loss of a receptor or for different stiffness
+    """
+    fig, axs = plt.subplots(2,7,figsize=(21, 6), dpi=300)
+    cmap = mpl.cm.viridis
+    bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
+    norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
+    #plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
+    #plt.title("Correct connected receptors out of 10 rounds")
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    
+    range_ = np.array(["minus_30","minus_20","minus_10","plus_10","plus_20","plus_30"])
+    folder =0
+    for folder_path in ["./modell_h2f_stiff_spsc_normal_change_R3_init_angle/", "./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"]:
+        
+        index_perf = 0
+        for rt in range_:
+            voronoi_matrix = np.zeros(nr_of_rec*6)
+            for sweeps in range(10):
+                with open(f"{folder_path}{rt}_degree_test_{sweeps}.npy", 'rb') as f:
+                    way_matrix_x = np.load(f)
+                    way_matrix_y = np.load(f)
+                    grid_x = np.load(f)
+                    grid_y = np.load(f)
+                for receptor in np.arange(1,7):
+                    rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                    first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                    last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+                    voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                    voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
 
+            axs[folder,index_perf].set_xlim(500,900)
+            axs[folder,index_perf].set_ylim(300,550)
+            axs[folder,index_perf].scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=20)
+            index_perf +=1
+            if rt=="minus_10":
+                index_perf +=1
+        voronoi_matrix = np.zeros(nr_of_rec*6)
+        for sweeps in range(10):
+            if folder_path =="./modell_h2f_stiff_spsc_normal_change_R3_init_angle/":
+                with open(f"./modell_h2f_stiff_speedscaling_tanh_stiffness_normal/test_{sweeps}.npy", 'rb') as f:
+                    way_matrix_x = np.load(f)
+                    way_matrix_y = np.load(f)
+                    grid_x = np.load(f)
+                    grid_y = np.load(f)
+            else:
+                with open(f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/stiffness_1.0_test_{sweeps}.npy", 'rb') as f:
+                    way_matrix_x = np.load(f)
+                    way_matrix_y = np.load(f)
+                    grid_x = np.load(f)
+                    grid_y = np.load(f)
+            for receptor in np.arange(1,7):
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+
+        axs[folder,3].set_xlim(500,900)
+        axs[folder,3].set_ylim(300,550)
+        axs[folder,3].scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=20)
+        
+        folder+=1
+    axs[0,0].set_ylabel("normal model", size =20)
+    axs[1,0].set_ylabel("stiffness model", size =20)
+    axs[0,0].set_title("-30")
+    axs[0,1].set_title("-20")
+    axs[0,2].set_title("-10")
+    axs[0,3].set_title("0")
+    axs[0,4].set_title("10")
+    axs[0,5].set_title("20")
+    axs[0,6].set_title("30")
+    fig.suptitle('Initial angle change of R3 in degree')
+    plt.savefig(f"{folder_path}comp_voronoi_matrix.png")
 
 def voronoi_grid(folder_path, time_index):
     """
@@ -1088,7 +1207,7 @@ def plot_way_matrix():
     """
     #for sweeps in range(10):
     plt.figure(dpi = 300)
-    with open(f"{folder_path}angle_2.0_test_0.npy", 'rb') as f:
+    with open(f"{folder_path}test_0.npy", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
@@ -1098,11 +1217,11 @@ def plot_way_matrix():
         plt.plot(way_matrix_x[R,:16],way_matrix_y[R,:16],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
         if np.mod(R,6) ==5:
             plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray")
-    plt.savefig(f"{folder_path}way_matrix_angle_2.0_test_0.png")
+    plt.savefig(f"{folder_path}way_matrix.png")
 
-def run_main(save_fil, file_name):
+def run_main(save_fil, file_name, sweeps):
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    for sweeps in range(10):
+    for sweeps in range(sweeps):
         way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
         with open(f"{folder_path}{file_name}{sweeps}.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
@@ -1136,27 +1255,29 @@ if __name__ == '__main__':
     const_stiff = False
     angle_per = 2
     change_angle = True
-    change = ( np.pi/180 * 20)
-    run_main(False,"plus_20_degree_test_" )
-    change = -( np.pi/180 * 20)
-    run_main(False,"minus_20_degree_test_" )
-    change = ( np.pi/180 * 30)
-    run_main(False,"plus_30_degree_test_" )
-    change = -( np.pi/180 * 30)
-    run_main(False,"minus_30_degree_test_" )
+    for i in np.range(11,20):
+        change = ( np.pi/180 * i)
+        run_main(False,f"plus_{i}_degree_test_",2 )
+        change = -( np.pi/180 * i)
+        run_main(False,f"minus_{i}_degree_test_",2 )
+    for i in np.range(21,30):
+        change = -( np.pi/180 * i)
+        run_main(False,f"minus_{i}_degree_test_",2 )
+
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"
     const_stiff = True
     constanct_stiff = 1
-    change = (np.pi/180 * 20)
-    run_main(False,"plus_20_degree_test_" )
-    change = -(np.pi/180 * 20)
-    run_main(False,"minus_20_degree_test_" )
-    change = (np.pi/180 * 30)
-    run_main(False,"plus_30_degree_test_" )
-    change = -(np.pi/180 * 30)
-    run_main(False,"minus_30_degree_test_" )
-    
+    for i in np.range(11,20):
+        change = ( np.pi/180 * i)
+        run_main(False,f"plus_{i}_degree_test_",1)
+        change = -( np.pi/180 * i)
+        run_main(False,f"minus_{i}_degree_test_",1)
+    for i in np.range(21,30):
+        change = -( np.pi/180 * i)
+        run_main(False,f"minus_{i}_degree_test_",1)
+
     """
+    
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
     for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
@@ -1166,13 +1287,16 @@ if __name__ == '__main__':
     for angle_per in np.around(np.arange(1,2.1,0.2),1):
         run_main(False, f"angle_{angle_per}_test_")
     """
+    #folder_path ="./modell_h2f_stiff_spsc_keep_fil_number_analyse/keep_9_fil_"
     #plot_way_matrix()
     #voronoi_grid(folder_path, 15)
     #comp_performance_init_angle_bar()
+    #comp_voronoi_grid_init_angle()
     #length_of_step(folder_path,10)
     #length_of_stiff_fil_violin(folder_path)
     #run_main(False,"test_")
     
+    #rec_miss_change_rate()
     """profiler.disable()
     stats = pstats.Stats(profiler).sort_stats('cumtime')
     stats.print_stats()
