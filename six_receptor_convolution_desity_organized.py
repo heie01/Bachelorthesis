@@ -957,6 +957,61 @@ def comp_performance_plot():
     plt.savefig(f"{folder_path}performance_of_angle.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
 
+def comp_performance_plot_keep_fil_num():
+    """
+    calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
+    with the plot for each subtype and all together
+    """
+    range_ = np.arange(11)
+
+    plt.figure(dpi = 300, figsize=(10,6))
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    performance = np.zeros((range_.size,6))
+    performance_all = np.zeros(range_.size)
+    index_perf = 0
+    
+    bundle_index = [14, 15, 20, 21, 26, 27]
+    #bundle_index = [14, 15, 20, 21, 22, 26, 27]
+    for rt in range_:
+        count =0
+        voronoi_added = np.zeros(6)
+        voronoi_matrix = np.zeros(nr_of_rec*6)
+        for sweeps in range(10):
+            if rt ==10 and sweeps==1:
+                break
+            with open(f"{folder_path}keep_{rt}_fil_test_{sweeps}.npy", 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+                grid_x = np.load(f)
+                grid_y = np.load(f)
+            for receptor in np.arange(1,7):
+                count +=len(bundle_index)
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int)) 
+        if rt ==10:
+            voronoi_added = voronoi_added*10
+            count = count *10
+        performance[index_perf,:] = voronoi_added/(len(bundle_index)*10)
+        performance_all[index_perf]  = np.sum(voronoi_added)/count
+        index_perf +=1
+    
+    see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
+    for i in range(6):
+        plt.plot(np.arange(11),performance[:,i], ['o-','*-','s-','d-','x-','v-'][i], markersize=8, color =["blue","green","red","yellow","pink","orange"][i],alpha=see_through[i], label = f"R{i+1}")
+    plt.plot(np.arange(11),performance_all, 'p-', markersize=8, color ="black",alpha=1, label = "all RT")
+    plt.ylabel("Performance of Inner Bundles")
+    plt.ylim(0,1.1)
+    #plt.xticks(np.arange(11), ['0','1', '2', '3', '4', '5','6','7','8','9','original'])
+    #plt.xticks(np.arange(6), ['50',"60","70","80","90","100"])
+    plt.xlabel("Number of kept filopodia")
+    plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    #plt.title("The performance of correct connected receptors depending on flashlight angle percentage")
+    plt.savefig(f"{folder_path}performance_keep_fil_num_inner_bun.png")
+    #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
+
 def comp_performance_init_angle_bar():
     """
     calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
@@ -1254,7 +1309,9 @@ if __name__ == '__main__':
     change_angle = False
     folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse/"
     
-    for angle_per in np.around(np.arange(2.2,4.1,0.2)):
+    for angle_per in np.around(np.arange(2.2,4.0,0.2),1):
+        if angle_per ==3.0:
+            continue
         run_main(False,f"angle_{angle_per}_test_",10)
     """
     folder_path = ""
@@ -1266,7 +1323,7 @@ if __name__ == '__main__':
         run_main(False,f"plus_{i}_degree_test_",2 )
         change = -( np.pi/180 * i)
         run_main(False,f"minus_{i}_degree_test_",2 )
-    for i in np.range(21,30):
+    for i in np.arange(21,30):
         change = -( np.pi/180 * i)
         run_main(False,f"minus_{i}_degree_test_",2 )
 
@@ -1278,7 +1335,7 @@ if __name__ == '__main__':
         run_main(False,f"plus_{i}_degree_test_",1)
         change = -( np.pi/180 * i)
         run_main(False,f"minus_{i}_degree_test_",1)
-    for i in np.range(21,30):
+    for i in np.arange(21,30):
         change = -( np.pi/180 * i)
         run_main(False,f"minus_{i}_degree_test_",1)
 
@@ -1296,7 +1353,7 @@ if __name__ == '__main__':
     #folder_path ="./modell_h2f_stiff_spsc_keep_fil_number_analyse/keep_9_fil_"
     #plot_way_matrix()
     #voronoi_grid(folder_path, 15)
-    #comp_performance_init_angle_bar()
+    #comp_performance_plot_keep_fil_num()
     #comp_voronoi_grid_init_angle()
     #length_of_step(folder_path,10)
     #length_of_stiff_fil_violin(folder_path)
