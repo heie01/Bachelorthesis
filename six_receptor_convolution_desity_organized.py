@@ -233,6 +233,18 @@ def distance_to_exp(firstpos, pos_eval, Xint, Yint, v1int, v2int, receptor, mode
         #correct = correct[0,:]
     return correct
 
+def changing_pos(x_pos, y_pos):
+    x_max_dis = 40
+    y_max_dis = 23
+    x_pos = x_pos - x_max_dis
+    y_pos = y_pos - y_max_dis
+
+    x_random = np.random.normal(x_max_dis, x_max_dis*1/3, (6,1))
+    x_new = np.add(x_pos, x_random)
+    y_random = np.random.normal(y_max_dis, y_max_dis*1/3, (6,1))
+    y_new = np.add(y_pos, y_random)
+    return np.rint(x_new ).astype(int), np.rint(y_new ).astype(int)
+
 def creat_start(calc_density):
     # measured size of heels
     rm_heels = np.array([[3.10231051831059, 2.91492280980449, 2.04300797855269, 2.16799853146643],
@@ -275,6 +287,8 @@ def creat_start(calc_density):
             starting_pos_y = np.append(starting_pos_y,y_point.astype(int))
             horseshoe_x = (np.rint(horseshoe[0]+x_point)).astype(int)
             horseshoe_y = (np.rint(horseshoe[1]+y_point)).astype(int)
+            if change_pos:
+                horseshoe_x,horseshoe_y = changing_pos(horseshoe_x, horseshoe_y)
             dat2_inter[horseshoe_y,horseshoe_x] = 1
             heel_pos_x = np.append(heel_pos_x,horseshoe_x,axis = None)
             heel_pos_y = np.append(heel_pos_y,horseshoe_y,axis = None)            
@@ -286,19 +300,6 @@ def creat_start(calc_density):
         heels_desity = np.array([])
         fronts_desity = np.array([])
     return heels_desity,fronts_desity, heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg
-
-
-def changing_pos(x_pos, y_pos, radius):
-    x_max_dis = 40
-    y_max_dis = 23
-    x_pos = x_pos - x_max_dis
-    y_pos = y_pos - y_max_dis
-
-    x_random = np.random.normal(x_max_dis, x_max_dis*1/3)
-    x_new = x_pos + x_random
-    y_random = np.random.normal(y_max_dis, y_max_dis*1/3)
-    y_new = y_pos + y_random
-    return x_new, y_new
 
 def random_gaus_num():
     mean = 1
@@ -1367,7 +1368,7 @@ def voronoi_grid(folder_path, time_index):
     """
     calcualting the performance based on the placement in the grid
     """
-    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    #heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     plt.figure(dpi = 300)
     voronoi_matrix = np.zeros(nr_of_rec*6)
     for sweeps in range(10):
@@ -1378,10 +1379,9 @@ def voronoi_grid(folder_path, time_index):
             grid_y = np.load(f)
         for receptor in np.arange(1,7):
             rec_index = np.arange(receptor-1,nr_of_rec*6,6)
-            first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
-            
+            first_pos = np.array(list(zip(way_matrix_x[rec_index,0],way_matrix_y[rec_index,0])))
             last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
-            
+        
             voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
             voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
             
@@ -1389,7 +1389,7 @@ def voronoi_grid(folder_path, time_index):
     #plt.xlim(400,1100)
     #plt.ylim(200,650)
     #plt.figure(dpi = 300)
-    plt.scatter(heel_pos_x,heel_pos_y,c=voronoi_matrix,cmap='viridis', s=10)
+    plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0],c=voronoi_matrix,cmap='viridis', s=10)
     cmap = mpl.cm.viridis
     bounds = [0, 1, 2, 3, 4, 5,6,7,8,9,10]
     norm = mpl.colors.BoundaryNorm(bounds, cmap.N)
@@ -1486,32 +1486,19 @@ if __name__ == '__main__':
     making_movie = False
     nr_of_rec = 42 #number of bundles
     include_equator = False
-    r3r4swap = False  
+    r3r4swap = False
+    change_angle = False
+    folder_path = f"./modell_h2f_stiff_spsc_normal_start_pos_change/"
     const_stiff = False
-    change_angle = True
-    #folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_flashlight_width_analyse/"
-    """
-    for angle_per in np.around(np.arange(2.2,4.0,0.2),1):
-        if angle_per ==3.0:
-            continue
-        run_main(False,f"angle_{angle_per}_test_",10)
-    """
-    folder_path = "./modell_h2f_stiff_spsc_constant_stiff_0.9_change_R3_init_angle"
-    const_stiff = True
-    constanct_stiff = 0.9
     angle_per = 2
-    
-    for i in np.arange(10,20):
-        change = ( np.pi/180 * i)
-        run_main(False,f"plus_{i}_degree_test_",2 )
-        change = -( np.pi/180 * i)
-        run_main(False,f"minus_{i}_degree_test_",2 )
-    for i in np.arange(20,31):
-        change = -( np.pi/180 * i)
-        run_main(False,f"minus_{i}_degree_test_",2 )
-    change = ( np.pi/180 * 30)
-    run_main(False,f"plus_{i}_degree_test_",2 )
+    change_pos = True
+    run_main(False,"dis_1/3dis_test_",10)
+
     """
+    for i in np.arange(10,20):
+        run_main(False,f"plus_{i}_degree_test_",2 )
+    run_main(False,f"plus_{i}_degree_test_",2 )
+    
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/"
     const_stiff = True
     constanct_stiff = 1
@@ -1539,6 +1526,7 @@ if __name__ == '__main__':
     #folder_path ="./modell_h2f_stiff_spsc_keep_fil_number_analyse/keep_9_fil_"
     #folder_path = f"./modell_h2f_stiff_spsc_constant_stiff_change_R3_init_angle/minus_29_degree_"
     #plot_way_matrix()
+
     #voronoi_grid(folder_path, 15)
     #comp_performance_plot_keep_fil_num()
     #comp_performance_init_angle_plot()
