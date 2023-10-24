@@ -301,6 +301,62 @@ def creat_start(calc_density):
         fronts_desity = np.array([])
     return heels_desity,fronts_desity, heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg
 
+def creat_start_allready_exists(calc_density,pos_file):
+    # measured size of heels
+    rm_heels = np.array([[3.10231051831059, 2.91492280980449, 2.04300797855269, 2.16799853146643],
+                         [3.36613563287586, 3.6474344212202, 2.59092160570733, 2.49818435400807],
+                         [3.26, 3.45, 2.15, 2.1],
+                         [2.5838454966756, 3.26122733330694, 2.43382971588824, 1.79884449690457],
+                         [2.73134911063699, 3.95170014933712, 3.89010177959303, 3.75649529229474],
+                         [3.97548396049507, 3.37776310930197, 3.23239134019713, 3.02306813633871]])
+    radius_heels_avg = rm_heels.mean(axis=1)*25.2
+    #print(radius_heels_avg)
+
+    # measured size of fronts
+    rm_fronts = np.array([[3.39768913, 4.6265753 , 4.61201485, 4.17743499],
+                          [3.11686657, 3.37643334, 3.71268422, 2.80596312],
+                          [3.63754606, 4.92912784, 3.42151975, 3.4512155 ],
+                          [3.01362226, 3.0008909 , 3.62965469, 3.61263049],
+                          [3.4521001 , 3.91277842, 4.38606931, 4.57895422],
+                          [3.99243196, 4.05693107, 4.49508072, 4.3103579 ]])
+    radius_fronts_avg = rm_fronts.mean(axis=1)*25.2
+
+    with open(pos_file, 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+                grid_x = np.load(f)
+                grid_y = np.load(f)
+                
+    rows,cols = 1500, 1500 #have to be sqaured
+    dat2_inter = np.zeros((rows, cols))
+    POS = np.meshgrid(np.arange(rows), np.arange(cols))
+    heel_pos_x = way_matrix_x[:,0]
+    heel_pos_y = way_matrix_y[:,0]
+    
+    dat2_inter[heel_pos_y,heel_pos_x] = 1
+    starting_pos_x, starting_pos_y = np.array([],dtype=int), np.array([],dtype=int)
+    range_v2 = np.arange(6)
+    v1_x = 0
+    for count_v1 in np.arange(7):
+        if np.mod(count_v1,2)==1:	
+            v1_x = v1_x-v1[0]
+        else:
+            v1_x = v1_x +v1[0]
+        for count_v2 in range_v2:
+            x_point = v1_x+count_v2*v2[0] + 150
+            y_point = count_v1*v1[1]+count_v2*v2[1] + 150
+            starting_pos_x = np.append(starting_pos_x,x_point.astype(int))
+            starting_pos_y = np.append(starting_pos_y,y_point.astype(int))          
+
+    if calc_density:
+        heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
+        fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+    else:
+        heels_desity = np.array([])
+        fronts_desity = np.array([])
+        
+    return heels_desity,fronts_desity, heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg
+
 def random_gaus_num():
     mean = 1
     std_dev = 2/3
@@ -1546,12 +1602,21 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    change_angle = True
-    folder_path = f"./init_angle_change/"
+    change_angle = False
+    folder_path = f"./ec_start_pos_change/"
     const_stiff = False
     angle_per = 2
     change_pos = False
-
+    pos_files  =  [f"./ec_start_pos_change/dis_2_test_0.npy", f"./ec_start_pos_change/dis_test_0.npy", f"./ec_start_pos_change/dopple_dis_test_0.npy"]
+    for pos_file in pos_files:
+        heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
+        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+        with open(f"{folder_path[:-5]}cons_stiff.npy", 'w+b') as f:
+            np.save(f, way_matrix_x)
+            np.save(f, way_matrix_y)
+            np.save(f, grid_x)
+            np.save(f, grid_y)
+    """
     for i in np.arange(10,21):
         change = ( np.pi/180 * i)
         run_main(False,f"normal_plus_{i}_degree_test_",2)
@@ -1598,7 +1663,7 @@ if __name__ == '__main__':
     run_main(False,f"con_stiff_0.9_plus_30_degree_test_",2)
 
     
-    """
+    
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
     for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
