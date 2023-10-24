@@ -5,6 +5,7 @@ from scipy import signal
 from scipy.spatial import distance as dist
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import random
 
 def quantify_correct_way(grid_x, grid_y, receptor_x, receptor_y):
     print("grid_x",grid_x,"gird_y",grid_y)
@@ -388,8 +389,8 @@ def creat_start(calc_density):
     if calc_density:
         
         heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
-        heel_pos_x[loss_bundle*6+loss_receptor] =0
-        heel_pos_y[loss_bundle*6+loss_receptor] =0
+        heel_pos_x[loss_index] =0
+        heel_pos_y[loss_index] =0
         fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
     else:
         heels_desity = np.array([])
@@ -454,7 +455,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             if time>0 and (way_matrix_x[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_x[R,time-1] > rows- roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] < roi_radius[np.mod(R,6)] or way_matrix_y[R,time-1] > rows- roi_radius[np.mod(R,6)]):
                 way_matrix_x[R,time+1] =way_matrix_x[R,time]
                 way_matrix_y[R,time+1] =way_matrix_y[R,time]
-            elif R == loss_bundle*6+loss_receptor:
+            elif R in loss_index:
                 way_matrix_x[R,time+1] =0
                 way_matrix_y[R,time+1] =0
             else:
@@ -624,13 +625,13 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./modell_h2f_stiff_spsc_tanh_stiffness_receptor_loss/"
+    folder_path = f"./ec_receptor_loss/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
     const_stiff = False
     voronoi_matrix = np.zeros(nr_of_rec*6)
-    loss_bundle = 21 #da bundle mit 0 startes, looking at bundle 22
+    #loss_bundle = 21 #da bundle mit 0 startes, looking at bundle 22
     #loss_receptor = 1 
     
     """heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
@@ -644,11 +645,12 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    for loss_receptor in range(6):
+    for loss_per in np.arange(10,55,10):
         heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-        for sweeps in range(10):
+        for sweeps in range(3):
+            loss_index = random.sample(range(252), np.around(252/100*loss_per)) 
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-            with open(f"{folder_path}{loss_receptor}_rt_{loss_bundle}_b_test_{sweeps}.npy", 'w+b') as f:
+            with open(f"{folder_path}{loss_per}_percent_test_{sweeps}.npy", 'w+b') as f:
                 np.save(f, way_matrix_x)
                 np.save(f, way_matrix_y)
                 np.save(f, grid_x)
