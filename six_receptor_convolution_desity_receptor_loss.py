@@ -507,10 +507,13 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             if making_movie:
                 if R == 80:
                     plt.imshow(ind,origin="lower",alpha=0.2)
-                if R != loss_bundle*6+loss_receptor:
+                if R not in loss_index:
                     plt.plot(way_matrix_x[R,:time+1],way_matrix_y[R,:time+1],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
-                if np.mod(R,6) ==5:
-                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=1)
+                #if np.mod(R,6) ==5:
+                #    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=1)
+                else:
+                    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+                    plt.scatter(heel_pos_x[R],heel_pos_y[R],c="white")
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
         if making_movie:
             #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
@@ -624,7 +627,7 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = False
+    making_movie = True
     folder_path = f"./ec_receptor_loss/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
@@ -645,16 +648,16 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    for loss_per in np.arange(10,55,10):
-        for sweeps in range(3):
-            loss_index = random.sample(range(252), np.around(252/100*loss_per)) 
-            heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-            way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-            with open(f"{folder_path}{loss_per}_percent_test_{sweeps}.npy", 'w+b') as f:
-                np.save(f, way_matrix_x)
-                np.save(f, way_matrix_y)
-                np.save(f, grid_x)
-                np.save(f, grid_y)
+    #for loss_per in np.arange(10,55,10):
+        #for sweeps in range(3):
+    loss_index = random.sample(range(252), np.around(252/100*50)) 
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
+    way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+    with open(f"{folder_path}50_percent_test_make_movie.npy", 'w+b') as f:
+        np.save(f, way_matrix_x)
+        np.save(f, way_matrix_y)
+        np.save(f, grid_x)
+        np.save(f, grid_y)
     
     """
     #calcualting the performance based on the placement in the grid
