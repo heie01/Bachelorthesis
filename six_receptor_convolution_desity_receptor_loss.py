@@ -627,7 +627,7 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = True
+    making_movie = False
     folder_path = f"./ec_receptor_loss/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
@@ -648,16 +648,16 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    #for loss_per in np.arange(10,55,10):
-        #for sweeps in range(3):
-    loss_index = random.sample(range(252), np.around(252/100*50)) 
-    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-    way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-    with open(f"{folder_path}50_percent_test_make_movie.npy", 'w+b') as f:
-        np.save(f, way_matrix_x)
-        np.save(f, way_matrix_y)
-        np.save(f, grid_x)
-        np.save(f, grid_y)
+    for loss_per in np.arange(60,100,10):
+        for sweeps in range(6):
+            loss_index = random.sample(range(252), int(np.around(252/100*loss_per))) 
+            heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
+            way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+            with open(f"{folder_path}{loss_per}_percent_test_{sweeps}.npy", 'w+b') as f:
+                np.save(f, way_matrix_x)
+                np.save(f, way_matrix_y)
+                np.save(f, grid_x)
+                np.save(f, grid_y)
     
     """
     #calcualting the performance based on the placement in the grid
