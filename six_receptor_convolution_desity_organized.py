@@ -1574,7 +1574,7 @@ def plot_way_matrix():
 def run_main(save_fil, file_name, sweeps):
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
     for sweeps in range(sweeps):
-        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff = main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
         with open(f"{folder_path}{file_name}{sweeps}.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
             np.save(f, way_matrix_y)
@@ -1602,26 +1602,30 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    change_angle = False
-    folder_path = f"./ec_start_pos_change/"
+    change_angle = True
+    folder_path = f"./init_angle_change/"
     const_stiff = False
     angle_per = 2
     change_pos = False
+
+    """
     pos_files  =  [f"./ec_start_pos_change/dis_2_test_0.npy", f"./ec_start_pos_change/dis_test_0.npy", f"./ec_start_pos_change/dopple_dis_test_0.npy"]
     for pos_file in pos_files:
         heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
         way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-        with open(f"{folder_path[:-5]}cons_stiff.npy", 'w+b') as f:
+        with open(f"{pos_file[:-5]}cons_stiff.npy", 'w+b') as f:
             np.save(f, way_matrix_x)
             np.save(f, way_matrix_y)
             np.save(f, grid_x)
             np.save(f, grid_y)
     """
-    for i in np.arange(10,21):
-        change = ( np.pi/180 * i)
-        run_main(False,f"normal_plus_{i}_degree_test_",2)
-        change = -( np.pi/180 * i)
-        run_main(False,f"normal_minus_{i}_degree_test_",2)
+    
+    change = ( np.pi/180 * 20)
+    run_main(False,f"normal_plus_20_degree_test_",2)
+    change = -( np.pi/180 * 19)
+    run_main(False,f"normal_minus_19_degree_test_",2)
+    change = -( np.pi/180 * 20)
+    run_main(False,f"normal_minus_20_degree_test_",2)
     for i in np.arange(21,30):
         change = -( np.pi/180 * i)
         run_main(False,f"normal_minus_{i}_degree_test_",2)
@@ -1663,7 +1667,7 @@ if __name__ == '__main__':
     run_main(False,f"con_stiff_0.9_plus_30_degree_test_",2)
 
     
-    
+    """
     folder_path = f"./modell_h2f_stiff_spsc_constant_stiffness_anaylse/"
     const_stiff = True
     for constanct_stiff in np.around(np.arange(0,1.1,0.1),1):
