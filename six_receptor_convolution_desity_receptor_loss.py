@@ -387,10 +387,9 @@ def creat_start(calc_density):
             heel_pos_y = np.append(heel_pos_y,horseshoe_y,axis = None) 
     
     if calc_density:
-        
-        heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
         heel_pos_x[loss_index] =0
         heel_pos_y[loss_index] =0
+        heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
         fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
     else:
         heels_desity = np.array([])
@@ -628,7 +627,7 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = False
-    folder_path = f"./ec_receptor_loss/"
+    folder_path = f"./ec_receptor_loss_heel&front/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
@@ -648,8 +647,8 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    for loss_per in np.arange(60,100,10):
-        for sweeps in range(6):
+    for loss_per in np.arange(10,100,10):
+        for sweeps in range(5):
             loss_index = random.sample(range(252), int(np.around(252/100*loss_per))) 
             heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
