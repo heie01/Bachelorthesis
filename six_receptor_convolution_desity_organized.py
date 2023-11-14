@@ -333,8 +333,8 @@ def creat_start_allready_exists(calc_density,pos_file):
     rows,cols = 1500, 1500 #have to be sqaured
     dat2_inter = np.zeros((rows, cols))
     POS = np.meshgrid(np.arange(rows), np.arange(cols))
-    heel_pos_x = way_matrix_x[:,0]
-    heel_pos_y = way_matrix_y[:,0]
+    heel_pos_x = way_matrix_x[:,0].astype(int)
+    heel_pos_y = way_matrix_y[:,0].astype(int)
     
     dat2_inter[heel_pos_y,heel_pos_x] = 1
     starting_pos_x, starting_pos_y = np.array([],dtype=int), np.array([],dtype=int)
