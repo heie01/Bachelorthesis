@@ -1863,15 +1863,15 @@ if __name__ == '__main__':
     change_angle = False
     change_pos = False
     
-    folder_path = f"./modell_h2f_stiff_spsc_normal_only_heel_dens/"
-    run_main(False,"test_",10)
+    #folder_path = f"./modell_h2f_stiff_spsc_normal_only_heel_dens/"
+    #run_main(False,"test_",10)
     
-    pos_files  =  [f"./ec_start_pos_change/dis_2_test_0.npy", f"./ec_start_pos_change/dis_test_0.npy", f"./ec_start_pos_change/dopple_dis_test_0.npy"]
+    pos_files  =  [f"./ec_start_pos_change/dis_2__test_0.npy", f"./ec_start_pos_change/dis__test_0.npy", f"./ec_start_pos_change/dopple_dis__test_0.npy"]
     for pos_file in pos_files:
         heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
         for i in range(10):
             way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-            with open(f"{pos_file[:-9]}normal_only_heel_test_{i}.npy", 'w+b') as f:
+            with open(f"{pos_file[:-10]}normal_only_heel_test_{i}.npy", 'w+b') as f:
                 np.save(f, way_matrix_x)
                 np.save(f, way_matrix_y)
                 np.save(f, grid_x)
