@@ -295,7 +295,10 @@ def creat_start(calc_density):
 
     if calc_density:
         heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
-        fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+        if front_dens:
+            fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+        else:
+            fronts_desity = np.array([])
     else:
         heels_desity = np.array([])
         fronts_desity = np.array([])
@@ -350,7 +353,10 @@ def creat_start_allready_exists(calc_density,pos_file):
 
     if calc_density:
         heels_desity = kernel_parabola(1, POS[0],heel_pos_x,radius_heels_avg,POS[1],heel_pos_y)
-        fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+        if front_dens:
+            fronts_desity = kernel_parabola(0.5, POS[0],heel_pos_x,radius_fronts_avg,POS[1],heel_pos_y)
+        else:
+            fronts_desity = np.array([])
     else:
         heels_desity = np.array([])
         fronts_desity = np.array([])
@@ -379,7 +385,10 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
     #bins is the controll for how blurry the graph is
     #postitions = np.histogram2d(heel_pos_y,heel_pos_x, bins = 720, range = [[0, 720], [0, 720]])
 
-    dat2_inter = heels_desity+fronts_desity
+    if front_dens:
+        dat2_inter = heels_desity+fronts_desity
+    else: 
+        dat2_inter = heels_desity
     if making_movie:
         plt.figure(dpi=300)
         ### xlim und ylim anpassen an neue Gridgröße
@@ -500,8 +509,9 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             plt.savefig(f"{folder_path}{time+1}.png")
             plt.close()
 
-        fronts_desity = kernel_parabola(0.5,POS[0], way_matrix_x[:,time+1],radius_fronts_avg, POS[1],way_matrix_y[:,time+1])
-        dat2_inter =heels_desity+ fronts_desity
+        if front_dens:
+            fronts_desity = kernel_parabola(0.5,POS[0], way_matrix_x[:,time+1],radius_fronts_avg, POS[1],way_matrix_y[:,time+1])
+            dat2_inter =heels_desity+ fronts_desity
         
     return way_matrix_x,way_matrix_y,starting_pos_x, starting_pos_y, step_size_fil, step_size_stiff #, histogram_input
 
@@ -1372,12 +1382,13 @@ def comp_performance_init_angle_more_bundles_plot():
     plt.figure(figsize=(10, 6), dpi=300)
     axs_index = 0
 
-    range_ = np.array(["minus_29","minus_28","minus_27","minus_26","minus_25","minus_24","minus_23","minus_22","minus_21","minus_20",
+    range_ = np.array(["minus_40","minus_39","minus_38","minus_37","minus_36","minus_35","minus_34","minus_33","minus_32","minus_31","minus_30",
+                       "minus_29","minus_28","minus_27","minus_26","minus_25","minus_24","minus_23","minus_22","minus_21","minus_20",
                        "minus_19","minus_18","minus_17","minus_16","minus_15","minus_14","minus_13","minus_12","minus_11","minus_10",
                        "plus_1","plus_2","plus_3","plus_4","plus_5","plus_6","plus_7","plus_8","plus_9",
                        "plus_10","plus_11","plus_12","plus_13","plus_14","plus_15","plus_16","plus_17","plus_18","plus_19","plus_20","plus_30"])
     legend_ = ["normal model general performance","normal model R3 performance", "stiffness model general performance","stiffness model R3 performance"]
-    legend_ = ["normal model","stiffness 1.0 model","stiffness 0.9 model" ]
+    legend_ = ["basic, self-organised model","stiffness 1.0 model","stiffness 0.9 model" ]
     leg_index = 0
     #plt.figure(dpi = 300, figsize=(10,6))
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
@@ -1386,7 +1397,7 @@ def comp_performance_init_angle_more_bundles_plot():
     see_through = [0.5,0.5,0.5,0.8,0.8,0.8]
     #bundle_index = [14, 15, 20, 21, 26, 27]
     #bundle_index = [14, 15, 20, 21, 22, 26, 27]
-    x =[-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30]
+    x =[-40,-39,-38,-37,-36,-35,-34,-33,-32,-31,-30,-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30]
     #x = [-29,-28,-27,-26,-25,-24,-23,-22,-21,-20,-19,-18,-17,-16,-15,-14,-13,-12,-11,-10,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30]
     changed = (np.array([ 19,20, 21,25, 26, 27, 31, 32, 33])*6+2)
     folder_count= 0
@@ -1394,7 +1405,7 @@ def comp_performance_init_angle_more_bundles_plot():
         index_perf = 0
         for rt in range_:
             bundle_index = [19, 20, 21, 25, 26, 27, 31, 32, 33]
-            #bundle_index = [ 25, 26, 27, 31, 32, 33]
+            bundle_index = [ 25, 26, 27, 31, 32, 33]
 
             if folder_count ==1:
                 devide =len(bundle_index)
@@ -1453,8 +1464,8 @@ def comp_performance_init_angle_more_bundles_plot():
                 last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
                 voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
                 voronoi_added[receptor-1] += np.sum(voronoi_results[bundle_index].astype(int)) 
-        performance[20,:] = voronoi_added/(len(bundle_index)*10)
-        performance_all[20]  = np.sum(voronoi_added)/count
+        performance[31,:] = voronoi_added/(len(bundle_index)*10)
+        performance_all[31]  = np.sum(voronoi_added)/count
 
         plt.plot(x,performance[:,2],"-|", markersize=8, label = legend_[axs_index])
         #plt.plot(x,performance_all, "-|",markersize=8,alpha=1, label = legend_[axs_index])
@@ -1477,12 +1488,12 @@ def comp_performance_init_angle_more_bundles_plot():
     #plt.title("The performance of correct connected receptors depending on flashlight angle percentage")
     plt.tight_layout()
     #plt.show()
-    plt.savefig(f"./ec_init_angle_change_more_bundles/performance_all_R3.png")
+    plt.savefig(f"./ec_init_angle_change_more_bundles/performance_upper_R3_-40_+30.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
 
 def comp_voronoi_grid_init_angle():
     """
-    calcualting the performance based on the placement in the grid for the loss of a receptor or for different stiffness
+    calcualting the performance based on the placement in the grid for the inital angle change
     """
     fig, axs = plt.subplots(2,7,figsize=(21, 6), dpi=300)
     cmap = mpl.cm.viridis
@@ -1680,6 +1691,7 @@ def performance_comp_receptor_loss():
     folder_path = "./ec_receptor_loss_10-50/"
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
     number = 0
+
     for rt in ["10_percent_test_0","10_percent_test_2","10_percent_test_1",
                "20_percent_test_0","20_percent_test_2","20_percent_test_1",
                "30_percent_test_0","30_percent_test_2","30_percent_test_1",
@@ -1736,25 +1748,84 @@ def performance_comp_receptor_loss():
     plt.ylim(0,1.1)
     plt.savefig(f"{folder_path}percentage_performance.png")
 
+def performance_comp_receptor_loss_heel_front():
+    """
+    calcualting the performance based on the placement in the grid for the loss of a receptor or for different stiffness
+    """
+    performance_receptor = np.array([])
+    for i in (np.array([7,8,9,10,12,13,14,15,19,20,21,22,24,25,26,27,31,32,33,34])*6):
+         performance_receptor = np.append(performance_receptor,np.arange(i,i+6))
+    plt.figure(dpi = 300)
+    performance = np.zeros(9*7)
+    count = np.zeros(9*7,int)
+    folder_path = "./ec_receptor_loss_heel_front/"
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    number = 0
+
+    
+    for j in np.arange(10,95,10):
+        for i in range(5):
+            rt =f"{j}_percent_test_{i}"
+            voronoi_matrix = np.zeros(nr_of_rec*6)
+            with open(f"{folder_path}{rt}.npy", 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+                grid_x = np.load(f)
+                grid_y = np.load(f)
+            for receptor in np.arange(1,7):
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,15],way_matrix_y[rec_index,15])))
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+            
+            out = np.where(way_matrix_x[:,0]==0)[0]
+            print(len(out))
+            for R in range(heel_pos_x.size):
+                if R not in out and R in performance_receptor:
+                    performance[number+np.mod(R,6)] += voronoi_matrix[R]
+                    count[number+np.mod(R,6)] += 1
+                    performance[number+6] += voronoi_matrix[R]
+                    count[number+6] += 1
+
+            if rt.endswith("4"):
+                number += 7
+    
+    print(count)
+    
+    performance = performance/count
+    for i in range(7):
+        if i == 6:
+            plt.plot(np.arange(10,95,10),performance[np.arange(i,7*9,7)],label = f"all RT", color ="black")
+            break
+        plt.plot(np.arange(10,95,10),performance[np.arange(i,7*9,7)],label = f"R{i+1}", color=["blue","green","red","yellow","pink","orange"][np.mod(i,6)])
+    #plt.show()
+    plt.xlabel("Percentage of Receptor Loss")
+    plt.ylabel("Performance of Still Existing Receptors")
+    plt.title("Receptor Loss Performance")
+    plt.legend()
+    plt.ylim(0,1.1)
+    plt.savefig(f"{folder_path}percentage_performance.png")
+
 def plot_way_matrix():
     """
     making plot of way_matrix
     """
     #for sweeps in range(10):
     plt.figure(dpi = 300)
-    with open(f"{folder_path}test_0.npy", 'rb') as f:
+    with open(f"{folder_path}", 'rb') as f:
                 way_matrix_x = np.load(f)
                 way_matrix_y = np.load(f)
                 grid_x = np.load(f)
                 grid_y = np.load(f)
     #print(way_matrix_x[21*6+3,:], way_matrix_y[21*6+3,:])
     for R in range(42*6):
-        plt.plot(way_matrix_x[14*6,:16],way_matrix_y[14*6,:16],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
+        if np.mod(R,6)==2:
+            plt.plot(way_matrix_x[R,:16],way_matrix_y[R,:16],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)])
         if np.mod(R,6) ==5:
             plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray")
-    plt.savefig(f"{folder_path}way_matrix_try_14_b.png")
-    plt.show()
-
+    plt.savefig(f"{folder_path[:-4]}_way_matrix_R3.png")
+     
 def run_main(save_fil, file_name, sweeps):
     heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
     for sweeps in range(sweeps):
@@ -1786,13 +1857,29 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    change_angle = True
-    folder_path = f"./init_angle_change/"
+    front_dens = False
     const_stiff = False
     angle_per = 2
+    change_angle = False
     change_pos = False
     
-    #comp_performance_init_angle_more_bundles_plot()
+    folder_path = f"./modell_h2f_stiff_spsc_normal_only_heel_dens/"
+    run_main(False,"test_",10)
+    
+    pos_files  =  [f"./ec_start_pos_change/dis_2_test_0.npy", f"./ec_start_pos_change/dis_test_0.npy", f"./ec_start_pos_change/dopple_dis_test_0.npy"]
+    for pos_file in pos_files:
+        heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
+        for i in range(10):
+            way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+            with open(f"{pos_file[:-9]}normal_only_heel_test_{i}.npy", 'w+b') as f:
+                np.save(f, way_matrix_x)
+                np.save(f, way_matrix_y)
+                np.save(f, grid_x)
+                np.save(f, grid_y)
+
+    """
+    comp_performance_init_angle_more_bundles_plot()
+    
     for i in np.arange(30,41):
         const_stiff = False
         change = -( np.pi/180 * i)
@@ -1802,16 +1889,8 @@ if __name__ == '__main__':
         run_main(False,f"con_stiff_1.0_minus_{i}_degree_test_",1)
         constanct_stiff = 0.9
         run_main(False,f"con_stiff_0.9_minus_{i}_degree_test_",2)
-    """
-    pos_files  =  [f"./ec_start_pos_change/dis_2_test_0.npy", f"./ec_start_pos_change/dis_test_0.npy", f"./ec_start_pos_change/dopple_dis_test_0.npy"]
-    for pos_file in pos_files:
-        heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
-        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-        with open(f"{pos_file[:-5]}cons_stiff.npy", 'w+b') as f:
-            np.save(f, way_matrix_x)
-            np.save(f, way_matrix_y)
-            np.save(f, grid_x)
-            np.save(f, grid_y)
+    
+    
     
     
     change = ( np.pi/180 * 20)
