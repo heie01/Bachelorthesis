@@ -647,8 +647,8 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    for loss_per in np.arange(10,100,10):
-        for sweeps in range(5):
+    for loss_per in np.arange(60,100,10):
+        for sweeps in np.arange(5,10,1):
             loss_index = random.sample(range(252), int(np.around(252/100*loss_per))) 
             heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
             way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
