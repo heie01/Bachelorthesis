@@ -239,9 +239,9 @@ def changing_pos(x_pos, y_pos):
     x_pos = x_pos - x_max_dis
     y_pos = y_pos - y_max_dis
 
-    x_random = np.random.normal(x_max_dis, x_max_dis*1/3, (6,1))
+    x_random = np.random.normal(x_max_dis, x_max_dis*2/3, (6,1))
     x_new = np.add(x_pos, x_random)
-    y_random = np.random.normal(y_max_dis, y_max_dis*1/3, (6,1))
+    y_random = np.random.normal(y_max_dis, y_max_dis*2/3, (6,1))
     y_new = np.add(y_pos, y_random)
     return np.rint(x_new ).astype(int), np.rint(y_new ).astype(int)
 
@@ -1154,6 +1154,218 @@ def comp_performance_plot_keep_fil_num():
     plt.savefig(f"{folder_path}performance_keep_fil_num_inner_bun.png")
     #plt.legend(["R1","R2","R3","R4","R5","R6"], loc='lower left', borderaxespad=1)
 
+def performance_start_pos_change_comp_bar(folder_path, time_index):
+    """
+    calcualting the performance based on the placement in the grid
+    """
+    fig = plt.figure(dpi=300, figsize=(8,8))
+    gs = fig.add_gridspec(2, hspace=0.5)
+    axes = gs.subplots()      
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+    #plt.figure(dpi = 300)
+    performance_all = np.zeros(7)
+    for file_name in ["dis__normal_only_heel_test_","dis_2__normal_only_heel_test_"]:
+        performance_all_2 = performance_all
+        voronoi_matrix = np.zeros(nr_of_rec*6)
+        for sweeps in range(10):
+            with open(f"{folder_path}{file_name}{sweeps}.npy", 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+                grid_x = np.load(f)
+                grid_y = np.load(f)
+            for receptor in np.arange(1,7):
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+
+        performance_all = np.zeros(7)
+        count_all = 0
+        for rec in range(6):
+            count_type = 0
+            for bun in performance_bundles*6:
+                performance_all[rec] += voronoi_matrix[bun+rec]
+                count_type += 10
+                performance_all[6] +=voronoi_matrix[bun+rec]
+                count_all += 10
+            performance_all[rec] = performance_all[rec]/count_type 
+        performance_all[6] = performance_all[6]/count_all
+    axes[0].bar(np.arange(7)-0.45,(performance_all+performance_all_2)/2,0.3)
+    #color="#FFCB3A"
+
+    performance_all = np.zeros(7)
+    for file_name in ["dis_test_","dis_2_test_"]:
+        performance_all_2 = performance_all
+        voronoi_matrix = np.zeros(nr_of_rec*6)
+        for sweeps in range(10):
+            with open(f"{folder_path}{file_name}{sweeps}.npy", 'rb') as f:
+                way_matrix_x = np.load(f)
+                way_matrix_y = np.load(f)
+                grid_x = np.load(f)
+                grid_y = np.load(f)
+            for receptor in np.arange(1,7):
+                rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+                first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+                last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+
+                voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+                voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+
+        performance_all = np.zeros(7)
+        count_all = 0
+        for rec in range(6):
+            count_type = 0
+            for bun in performance_bundles*6:
+                performance_all[rec] += voronoi_matrix[bun+rec]
+                count_type += 10
+                performance_all[6] +=voronoi_matrix[bun+rec]
+                count_all += 10
+            performance_all[rec] = performance_all[rec]/count_type 
+        performance_all[6] = performance_all[6]/count_all
+    axes[0].bar(np.arange(7)-0.15,(performance_all+performance_all_2)/2,0.3)
+
+    #"#FFBF00" , color="#FFCA3A"
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    performance_all = np.zeros(7)
+    for file_name in ["dis_test_cons_stiff.npy","dis_2_test_cons_stiff.npy"]:
+        performance_all_2 = performance_all
+        voronoi_matrix = np.zeros(nr_of_rec*6)
+        with open(f"{folder_path}{file_name}", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+            last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+            voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+
+        performance_all = np.zeros(7)
+        count_all = 0
+        for rec in range(6):
+            count_type = 0
+            for bun in performance_bundles*6:
+                performance_all[rec] += voronoi_matrix[bun+rec]
+                count_type += 1
+                performance_all[6] +=voronoi_matrix[bun+rec]
+                count_all += 1
+            performance_all[rec] = performance_all[rec]/count_type 
+        performance_all[6] = performance_all[6]/count_all
+    axes[0].bar(np.arange(7)+0.15,(performance_all+performance_all_2)/2,0.3)
+    ##9FE2BF, color="#8AC926"
+    #axes[0].legend()
+    axes[0].set_xticks(np.arange(7), ['R1', 'R2', 'R3', 'R4', 'R5','R6',"all R"])
+    #for i in range(7):
+    #    bars[i].set_color(["blue","green","red","yellow","pink","orange","black"][i])
+    axes[0].grid(axis = 'y',alpha =0.5)
+    #axes[0].set_title("Performance by random change of start positions")
+    #axes[0].legend(["normal model", "stiffness model"], loc =4)
+    axes[0].set_title("standart deviation")
+    axes[0].label_outer()
+
+    performance_all = np.zeros(7)
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    for sweeps in range(10):
+        with open(f"{folder_path}dopple_dis__normal_only_heel_test_{sweeps}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+            last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+            voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+    count_all = 0
+    for rec in range(6):
+        count_type = 0
+        for bun in performance_bundles*6:
+            performance_all[rec] += voronoi_matrix[bun+rec]
+            count_type += 10
+            performance_all[6] +=voronoi_matrix[bun+rec]
+            count_all += 10
+        performance_all[rec] = performance_all[rec]/count_type 
+    performance_all[6] = performance_all[6]/count_all
+    axes[1].bar(np.arange(7)-0.45 ,(performance_all),0.3)
+    #, color="#FFCB3A"
+    performance_all = np.zeros(7)
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    for sweeps in range(10):
+        with open(f"{folder_path}dopple_dis_test_{sweeps}.npy", 'rb') as f:
+            way_matrix_x = np.load(f)
+            way_matrix_y = np.load(f)
+            grid_x = np.load(f)
+            grid_y = np.load(f)
+        for receptor in np.arange(1,7):
+            rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+            first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+            last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+            voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+            voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+    count_all = 0
+    for rec in range(6):
+        count_type = 0
+        for bun in performance_bundles*6:
+            performance_all[rec] += voronoi_matrix[bun+rec]
+            count_type += 10
+            performance_all[6] +=voronoi_matrix[bun+rec]
+            count_all += 10
+        performance_all[rec] = performance_all[rec]/count_type 
+    performance_all[6] = performance_all[6]/count_all
+    axes[1].bar(np.arange(7)-0.15 ,(performance_all),0.3)
+    #, color="#FFCA3A"
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    performance_all = np.zeros(7)
+    voronoi_matrix = np.zeros(nr_of_rec*6)
+    with open(f"{folder_path}dopple_dis_test_cons_stiff.npy", 'rb') as f:
+        way_matrix_x = np.load(f)
+        way_matrix_y = np.load(f)
+        grid_x = np.load(f)
+        grid_y = np.load(f)
+    for receptor in np.arange(1,7):
+        rec_index = np.arange(receptor-1,nr_of_rec*6,6)
+        first_pos = np.array(list(zip(heel_pos_x[rec_index],heel_pos_y[rec_index])))
+        last_pos = np.array(list(zip(way_matrix_x[rec_index,time_index],way_matrix_y[rec_index,time_index])))
+        voronoi_results = distance_to_exp(first_pos,last_pos, grid_x, grid_y, v1, v2 ,receptor,"voronoi")
+        voronoi_matrix[(receptor-1)::6] += voronoi_results.astype(int)
+    count_all = 0
+    for rec in range(6):
+        count_type = 0
+        for bun in performance_bundles*6:
+            performance_all[rec] += voronoi_matrix[bun+rec]
+            count_type += 1
+            performance_all[6] +=voronoi_matrix[bun+rec]
+            count_all += 1
+        performance_all[rec] = performance_all[rec]/count_type 
+    performance_all[6] = performance_all[6]/count_all
+    axes[1].bar(np.arange(7)+0.15,(performance_all+performance_all_2)/2,0.3)
+    #,color="#8AC926"
+    axes[1].set_xticks(np.arange(7), ['R1', 'R2', 'R3', 'R4', 'R5','R6',"all R"])
+    #for i in range(7):
+    #    bars[i].set_color(["blue","green","red","yellow","pink","orange","black"][i])
+    axes[1].grid(axis = 'y',alpha =0.5)
+    #axes[1].set_title("Performance by random change of start positions")
+    axes[1].label_outer()
+    axes[1].set_title("dopple standart deviation")
+    #plt.xticks(np.arange(-8,7,1), ['R1', 'R2', 'R3', 'R4', 'R5','R6',"all R","", 'R1', 'R2', 'R3', 'R4', 'R5','R6',"all R"])
+    #for i in range(7):
+    #    bars[i].set_color(["blue","green","red","yellow","pink","orange","black"][i])
+    #plt.grid(axis = 'y',alpha =0.5)
+    #plt.title("Performance by random change of start positions")
+    #plt.legend(["normal model", "stiffness model", "dopple standart deviation normal model", "dopple standart deviation stiffness model"], loc =4)
+    
+    fig.text(0.04, 0.5, 'performance of inner bundle', va='center', rotation='vertical',size =15)
+    fig.legend(["normal model only heel","normal model", "stiffness model"], loc = 7)
+    fig.tight_layout()
+    #plt.show()
+    plt.savefig(f"{folder_path}performance_comp_3_models.png")
+
 def comp_performance_init_angle_bar():
     """
     calculating the performance of inner bundle comparing different flashlight width or stiffness or so on
@@ -1637,7 +1849,7 @@ def voronoi_grid_heel_func(folder_path, time_index):
     plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap))
     plt.title("Correct connected receptors out of 10 rounds")
     #plt.show()
-    plt.savefig(f"{folder_path}voronoi_matrix_18_time.png")
+    plt.savefig(f"{folder_path}voronoi_matrix.png")
 
 def voronoi_grid_repeat():
     """
@@ -1857,26 +2069,38 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    front_dens = False
+    front_dens = True
     const_stiff = False
     angle_per = 2
     change_angle = False
-    change_pos = False
-    
-    #folder_path = f"./modell_h2f_stiff_spsc_normal_only_heel_dens/"
-    #run_main(False,"test_",10)
-    
-    pos_files  =  [f"./ec_start_pos_change/dis_2__test_0.npy", f"./ec_start_pos_change/dis__test_0.npy", f"./ec_start_pos_change/dopple_dis__test_0.npy"]
-    for pos_file in pos_files:
-        heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
-        for i in range(10):
-            way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-            with open(f"{pos_file[:-10]}normal_only_heel_test_{i}.npy", 'w+b') as f:
-                np.save(f, way_matrix_x)
-                np.save(f, way_matrix_y)
-                np.save(f, grid_x)
-                np.save(f, grid_y)
+    change_pos = True
+    folder_path = f"./ec_start_pos_change/"
+    performance_bundles = np.array([7,8,9,10,12,13,14,15,19,20,21,22,24,25,26,27,31,32,33,34])  
+    #voronoi_grid_heel_func(folder_path, 16)
+    #performance_start_pos_change_comp_bar(folder_path, 16)
 
+    
+    run_main(False,"dopple_dis_2_test_",10)
+    
+    pos_file  =  f"./ec_start_pos_change/dopple_dis_2_test_0.npy"
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start_allready_exists(True, pos_file)
+    front_dens = False
+    for i in range(10):
+        way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+        with open(f"{pos_file[:-10]}normal_only_heel_test_{i}.npy", 'w+b') as f:
+            np.save(f, way_matrix_x)
+            np.save(f, way_matrix_y)
+            np.save(f, grid_x)
+            np.save(f, grid_y)
+    const_stiff = True
+    front_dens = True
+    constanct_stiff = 1
+    way_matrix_x, way_matrix_y, grid_x, grid_y, step_fil, step_stiff= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+    with open(f"{pos_file[:-10]}dopple_dis_2_test_cons_stiff.npy", 'w+b') as f:
+        np.save(f, way_matrix_x)
+        np.save(f, way_matrix_y)
+        np.save(f, grid_x)
+        np.save(f, grid_y)
     """
     comp_performance_init_angle_more_bundles_plot()
     
