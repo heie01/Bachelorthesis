@@ -432,7 +432,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
         else:
             s_time = s(time+20, s_steap, s_x_move) 
         if making_movie:
-            plt.figure(dpi = 300)
+            plt.figure(dpi = 300, figsize=(10,12))
             plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
             plt.colorbar()     
         for R in np.arange(42*6):
@@ -491,13 +491,13 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 way_matrix_y[R,time+1] = round( s_time * new_stiff_y + (1-s_time) * new_fil_y)
             if making_movie:
                 if np.mod(R,6) ==5:
-                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "black", linestyle='-', marker='o', alpha=0.4)
+                    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "black", linestyle='-', marker='o', alpha=0.4, size = 4)
                 if R == 122:
                     plt.imshow(ind,origin="lower",alpha=0.2)
                     plt.plot(way_matrix_x[R,:time],way_matrix_y[R,:time],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)],alpha = 1)
-                    plt.scatter(xfil, yfil, color = "red")
-                    direction_x , direction_y = find_point_2degree(front_x, front_y,roi_radius[np.mod(R,6)], angle)
-                    plt.plot([front_x,direction_x],[front_y,direction_y], color = "#06bdb0")
+                    plt.scatter(xfil, yfil, color = "red", size = 7)
+                    #direction_x , direction_y = find_point_2degree(front_x, front_y,roi_radius[np.mod(R,6)], angle)
+                    #plt.plot([front_x,direction_x],[front_y,direction_y], color = "#06bdb0")
                 else:
                     plt.plot(way_matrix_x[R,:time],way_matrix_y[R,:time],color=["blue","green","red","yellow","pink","orange"][np.mod(R,6)], alpha=0.5)
                 
@@ -507,8 +507,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             #plt.scatter(way_matrix_x[:,time+1],way_matrix_y[:,time+1], s = 1, color= "r")
             #plt.scatter(way_matrix_x[:,0],way_matrix_y[:,0], s = 1,color = "black")
             #plt.title(label = "Densitylandscape")
-            #plt.xlim(100,1300)
-            #plt.ylim(100,800)
+            plt.xlim(100,1300)
+            plt.ylim(100,800)
             #plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black",alpha=0.5)
             #plt.show()
             plt.savefig(f"{folder_path}{time+1}.png")
