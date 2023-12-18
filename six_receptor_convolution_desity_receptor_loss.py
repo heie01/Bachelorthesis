@@ -523,7 +523,7 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             plt.ylim(100,800)
             plt.scatter(starting_pos_x, starting_pos_y,s=3,color="black")
             #plt.show()
-            plt.savefig(f"{folder_path}{time+1}.png")
+            plt.savefig(f"{folder_path}{loss_per}_{time+1}.png")
             plt.close()
         
         #kernel = np.outer(signal.windows.gaussian(70,100), signal.windows.gaussian(70, 100))
@@ -626,8 +626,8 @@ if __name__ == '__main__':
                  [7.42,0.01]]).mean(axis=0))*25.2).astype(int)
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
-    making_movie = False
-    folder_path = f"./ec_receptor_loss_heel&front/"
+    making_movie = True
+    folder_path = f"./ec_receptor_loss_heel&front_make_movie/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
@@ -647,16 +647,17 @@ if __name__ == '__main__':
                 np.save(f, grid_x)
                 np.save(f, grid_y)
     """
-    for loss_per in np.arange(60,100,10):
-        for sweeps in np.arange(5,10,1):
-            loss_index = random.sample(range(252), int(np.around(252/100*loss_per))) 
-            heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
-            way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
-            with open(f"{folder_path}{loss_per}_percent_test_{sweeps}.npy", 'w+b') as f:
-                np.save(f, way_matrix_x)
-                np.save(f, way_matrix_y)
-                np.save(f, grid_x)
-                np.save(f, grid_y)
+    #for loss_per in np.arange(60,100,10):
+    #    for sweeps in np.arange(5,10,1):
+    loss_per = 90
+    loss_index = random.sample(range(252), int(np.around(252/100*loss_per))) 
+    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(True)
+    way_matrix_x, way_matrix_y, grid_x, grid_y= main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg) 
+    with open(f"{folder_path}{loss_per}_percent_test.npy", 'w+b') as f:
+        np.save(f, way_matrix_x)
+        np.save(f, way_matrix_y)
+        np.save(f, grid_x)
+        np.save(f, grid_y)
     
     """
     #calcualting the performance based on the placement in the grid
