@@ -1861,13 +1861,13 @@ if __name__ == '__main__':
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
-    change_angle = True
+    change_angle = False
     folder_path = f"./ec_start_pos_change/"
     const_stiff = False
     angle_per = 2
     change_pos = False
     performance_bundles = np.array([7,8,9,10,12,13,14,15,19,20,21,22,24,25,26,27,31,32,33,34])
-    folder_path= f"./ec_start_pos_change/"
+    folder_path= f"./flashlight_plot/"
     run_main("test_", "./flashlight_plot/",1)
     #voronoi_grid_repeat()
     #performance_comp_receptor_loss()
