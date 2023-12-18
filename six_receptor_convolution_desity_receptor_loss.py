@@ -411,10 +411,11 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
         plt.xlim(100,1300)
         plt.ylim(100,800)
         plt.scatter(heel_pos_x,heel_pos_y, s = 1,color = "black")
-        plt.imshow(dat2_inter, origin="lower",vmin = 3,vmax = 8)
+        plt.imshow(dat2_inter, origin="lower")
+        #,vmin = 3,vmax = 8
         plt.colorbar()
         #plt.show()
-        plt.savefig(f"{folder_path}0.png")
+        plt.savefig(f"{folder_path}{loss_per}_0.png")
         plt.close()
     #variables
     circ_width_all = np.array([[76.93677250002409, 66.1581562071056, 58.64359788352946, 68.19374152821266],
@@ -447,7 +448,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
             s_time = s(time+20, s_steap, s_x_move) 
         if making_movie:
             plt.figure(dpi = 300)
-            plt.imshow(dat2_inter,  interpolation='nearest',origin="lower",vmin = 3,vmax = 8)  
+            plt.imshow(dat2_inter, interpolation='nearest', origin="lower")  
+            # vmin = 3,vmax = 8
             plt.colorbar()     
         for R in np.arange(42*6):
             #stop the growth of the filopodia if mask is out of range of matrix
@@ -511,8 +513,8 @@ def main(heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, st
                 #if np.mod(R,6) ==5:
                 #    plt.plot(way_matrix_x[R-5:R+1,0],way_matrix_y[R-5:R+1,0],color = "gray",zorder=1)
                 else:
-                    heels_desity, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
-                    plt.scatter(heel_pos_x[R],heel_pos_y[R],c="white")
+                    heels_desity_, fronts_desity,heel_pos_x, heel_pos_y, rows, cols, POS, starting_pos_x,starting_pos_y, radius_fronts_avg=creat_start(False)
+                    plt.scatter(heel_pos_x[R],heel_pos_y[R], s = 1, c="white")
         #landscape doesnt work and plotting doesnt work, but at least it is quick!
         if making_movie:
             #plt.imshow(ind, alpha=0.2, cmap ="hot",interpolation='bilinear',origin="lower")
@@ -627,7 +629,7 @@ if __name__ == '__main__':
     a_ell=np.around((np.array([1.27,1.35]).mean(axis=0))*25.2).astype(int)
     b_ell=np.around((np.array([2.18,2.38]).mean(axis=0))*25.2).astype(int)
     making_movie = True
-    folder_path = f"./ec_receptor_loss_heel&front_make_movie/"
+    folder_path = f"./ec_receptor_loss_heel_front_make_movie/"
     nr_of_rec = 42 #number of bundles
     include_equator = False
     r3r4swap = False
